@@ -119,7 +119,11 @@ export default function Navbar() {
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-1 md:space-x-2">
-              <Button variant="ghost" asChild className="text-sm md:text-base px-2 md:px-4">
+              <Button
+                variant="ghost"
+                asChild
+                className="text-sm md:text-base px-2 md:px-4"
+              >
                 <Link to="/auth">Sign In</Link>
               </Button>
               <Button asChild className="text-sm md:text-base px-2 md:px-4">
