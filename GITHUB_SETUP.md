@@ -32,6 +32,7 @@ git push -u origin main
 ### 3. Verify Repository Setup
 
 After pushing, you should see:
+
 - All your project files on GitHub
 - A comprehensive README.md
 - Proper .gitignore file
@@ -137,15 +138,18 @@ git push origin feature/new-feature
 ## 📋 Next Steps
 
 1. **Set up Supabase:**
+
    - Create Supabase project
    - Run `supabase-setup.sql` in SQL editor
    - Enable Google OAuth in Authentication settings
 
 2. **Configure environment variables:**
+
    - Copy `env.example` to `.env.local`
    - Add your Supabase credentials
 
 3. **Test locally:**
+
    ```bash
    npm install
    npm run dev
