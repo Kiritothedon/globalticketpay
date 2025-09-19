@@ -28,12 +28,14 @@ export default function Navbar() {
           to="/"
           className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
         >
+          {/* Logo - Hidden on mobile */}
           <img
             src="/logo1.png"
             alt="GlobalTicketPay Logo"
-            className="w-8 h-8 object-contain"
+            className="hidden md:block w-8 h-8 object-contain"
           />
-          <span className="text-xl font-semibold text-gray-900">
+          {/* Text - Left aligned on mobile, normal on desktop */}
+          <span className="text-lg md:text-xl font-semibold text-gray-900">
             GlobalTicketPay.com
           </span>
         </Link>
@@ -116,11 +118,11 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" asChild>
+            <div className="flex items-center space-x-1 md:space-x-2">
+              <Button variant="ghost" asChild className="text-sm md:text-base px-2 md:px-4">
                 <Link to="/auth">Sign In</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="text-sm md:text-base px-2 md:px-4">
                 <Link to="/auth">Sign Up</Link>
               </Button>
             </div>
