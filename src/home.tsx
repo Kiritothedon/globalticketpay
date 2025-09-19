@@ -1,0 +1,302 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Shield, CreditCard, CheckCircle, Lock, Users } from "lucide-react";
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto text-center max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
+            Pay all your traffic tickets in one place
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
+            Skip the courthouse lines and late fees. Submit your ticket
+            information, view all outstanding tickets, and pay securely online
+            in minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+            >
+              Check My Tickets
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-300 px-8 py-3 bg-transparent"
+            >
+              Sign Up / Log In
+            </Button>
+          </div>
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              <span>Bank-level security</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              <span>SSL encrypted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>50,000+ tickets paid</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              How it works
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Get your tickets resolved in three simple steps
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <Card className="text-center p-8 border-0 shadow-sm">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-blue-600">1</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  Submit Info
+                </h3>
+                <p className="text-gray-600">
+                  Enter your ticket number, license plate, or personal
+                  information. We'll search across multiple counties to find
+                  your tickets.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-8 border-0 shadow-sm">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-blue-600">2</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  See Tickets
+                </h3>
+                <p className="text-gray-600">
+                  View all your outstanding tickets in one dashboard. See
+                  amounts due, due dates, and court information all in one
+                  place.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-8 border-0 shadow-sm">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-blue-600">3</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  Pay Securely
+                </h3>
+                <p className="text-gray-600">
+                  Pay with credit card, debit card, or bank transfer. Get
+                  instant confirmation and email receipts for your records.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Signals Section */}
+      <section id="security" className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Your security is our priority
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              We use industry-leading security measures to protect your personal
+              and payment information
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">256-bit SSL</h3>
+              <p className="text-sm text-gray-600">
+                Bank-level encryption for all data transmission
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Stripe Powered
+              </h3>
+              <p className="text-sm text-gray-600">
+                Secure payments powered by Stripe
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                PCI Compliant
+              </h3>
+              <p className="text-sm text-gray-600">
+                Meets all payment card industry standards
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-orange-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Verified</h3>
+              <p className="text-sm text-gray-600">
+                Trusted by courts and government agencies
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-16 text-center">
+            <div className="inline-flex items-center gap-4 bg-gray-50 rounded-lg px-6 py-4">
+              <Lock className="w-5 h-5 text-gray-600" />
+              <span className="text-sm text-gray-600">
+                <strong>Secure payments powered by Stripe</strong> • Your
+                payment information is never stored on our servers
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Ready to pay your tickets?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of drivers who have simplified their ticket payments
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-gray-50 px-8 py-3"
+            >
+              Check My Tickets
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 bg-transparent"
+            >
+              Create Account
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-semibold text-white">
+                  TicketPay
+                </span>
+              </div>
+              <p className="text-sm text-gray-400">
+                The easiest way to pay traffic tickets online. Fast, secure, and
+                reliable.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-white mb-4">Product</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Security
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-white mb-4">Support</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Status
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Cookie Policy
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+            <p>&copy; 2024 TicketPay. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
