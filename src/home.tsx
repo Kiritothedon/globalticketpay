@@ -22,6 +22,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Last Updated */}
+      <div className="bg-muted/50 border-b">
+        <div className="container mx-auto px-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Last Updated: September 22, 2025
+          </p>
+        </div>
+      </div>
+      
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
@@ -48,6 +57,14 @@ export default function LandingPage() {
               onClick={handleSignUp}
             >
               {user ? "Dashboard" : "Sign Up / Log In"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-300 px-8 py-3 bg-transparent"
+              onClick={() => navigate("/site-list")}
+            >
+              Court Sites
             </Button>
           </div>
           <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">

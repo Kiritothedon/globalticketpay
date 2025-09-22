@@ -165,7 +165,6 @@ export default function AuthPage() {
     }
   };
 
-
   const handleGoogleLogin = async () => {
     setError("");
     setIsLoading(true);

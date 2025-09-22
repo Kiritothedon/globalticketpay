@@ -6,6 +6,7 @@ import AuthPage from "./auth/page";
 import DashboardPage from "./dashboard/page";
 import AddTicketPage from "./dashboard/add-ticket/page";
 import Loading from "./dashboard/add-ticket/loading";
+import SiteListPage from "./site-list/page";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -18,6 +19,7 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/site-list" element={<SiteListPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route
                 path="/dashboard"
