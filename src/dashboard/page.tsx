@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -10,15 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
-  DollarSign,
   FileText,
   Plus,
-  AlertCircle,
   Eye,
-  Edit,
   Trash2,
-  Upload,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Ticket } from "@/lib/supabase";

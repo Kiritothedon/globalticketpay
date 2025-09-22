@@ -8,12 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Shield, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { SupabaseService } from "@/lib/supabaseService";
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [emailForResend, setEmailForResend] = useState("");
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -161,40 +159,12 @@ export default function AuthPage() {
     try {
       await supabase.auth.signOut();
       setError("");
-      setEmailForResend("");
       console.log("Auth state cleared");
     } catch (err) {
       console.error("Error clearing auth:", err);
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (!emailForResend) {
-      setError("Please enter your email address");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: emailForResend,
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setError("Confirmation email sent! Please check your inbox.");
-      }
-    } catch (err) {
-      setError("Failed to resend confirmation email");
-      console.error("Resend error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     setError("");

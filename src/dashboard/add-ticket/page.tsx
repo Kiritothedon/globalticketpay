@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Upload, FileText, Camera } from "lucide-react";
+import { ArrowLeft, FileText, Camera } from "lucide-react";
 import { SupabaseService } from "@/lib/supabaseService";
 import { Ticket } from "@/lib/supabase";
 
