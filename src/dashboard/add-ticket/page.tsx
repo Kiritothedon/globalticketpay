@@ -1,12 +1,24 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Upload, FileText, Camera } from "lucide-react";
 import { SupabaseService } from "@/lib/supabaseService";
 import { Ticket } from "@/lib/supabase";
@@ -27,34 +39,34 @@ export default function AddTicketPage() {
     violation_date: "",
     due_date: "",
     amount: "",
-    
+
     // Location information
     state: "",
     county: "",
     court: "",
-    
+
     // Violation details
     violation: "",
     violation_code: "",
     violation_description: "",
-    
+
     // Driver information
     driver_license_number: "",
     driver_license_state: "",
     date_of_birth: "",
     license_expiration_date: "",
-    
+
     // Vehicle information
     vehicle_plate: "",
     vehicle_make: "",
     vehicle_model: "",
     vehicle_year: "",
     vehicle_color: "",
-    
+
     // Officer information
     officer_name: "",
     officer_badge_number: "",
-    
+
     // Additional information
     notes: "",
     court_date: "",
@@ -62,9 +74,9 @@ export default function AddTicketPage() {
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -108,7 +120,9 @@ export default function AddTicketPage() {
         vehicle_plate: formData.vehicle_plate || undefined,
         vehicle_make: formData.vehicle_make || undefined,
         vehicle_model: formData.vehicle_model || undefined,
-        vehicle_year: formData.vehicle_year ? parseInt(formData.vehicle_year) : undefined,
+        vehicle_year: formData.vehicle_year
+          ? parseInt(formData.vehicle_year)
+          : undefined,
         vehicle_color: formData.vehicle_color || undefined,
         officer_name: formData.officer_name || undefined,
         officer_badge_number: formData.officer_badge_number || undefined,
@@ -128,7 +142,7 @@ export default function AddTicketPage() {
           newTicket.id,
           user.id
         );
-        
+
         // Update ticket with image info
         await SupabaseService.updateTicket(newTicket.id, {
           ticket_image_url: imageData.url,
@@ -140,7 +154,6 @@ export default function AddTicketPage() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
-
     } catch (err) {
       console.error("Error creating ticket:", err);
       setError("Failed to create ticket. Please try again.");
@@ -175,21 +188,24 @@ export default function AddTicketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center space-x-4">
+      <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/dashboard")}
+            className="self-start"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Ticket</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Add New Ticket
+            </h1>
+            <p className="text-muted-foreground">
               Enter your traffic ticket information
             </p>
           </div>
@@ -197,10 +213,10 @@ export default function AddTicketPage() {
       </header>
 
       {/* Main Content */}
-      <main className="p-6">
-        <div className="max-w-4xl mx-auto">
+      <main className="p-4 sm:p-6">
+        <div className="max-w-6xl mx-auto">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6">
               {error}
             </div>
           )}
@@ -215,13 +231,15 @@ export default function AddTicketPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="ticket_number">Ticket Number *</Label>
                     <Input
                       id="ticket_number"
                       value={formData.ticket_number}
-                      onChange={(e) => handleInputChange("ticket_number", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("ticket_number", e.target.value)
+                      }
                       placeholder="e.g., TK-123456"
                       required
                     />
@@ -233,21 +251,25 @@ export default function AddTicketPage() {
                       type="number"
                       step="0.01"
                       value={formData.amount}
-                      onChange={(e) => handleInputChange("amount", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("amount", e.target.value)
+                      }
                       placeholder="0.00"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="violation_date">Violation Date</Label>
                     <Input
                       id="violation_date"
                       type="date"
                       value={formData.violation_date}
-                      onChange={(e) => handleInputChange("violation_date", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("violation_date", e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -256,7 +278,9 @@ export default function AddTicketPage() {
                       id="due_date"
                       type="date"
                       value={formData.due_date}
-                      onChange={(e) => handleInputChange("due_date", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("due_date", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -267,19 +291,23 @@ export default function AddTicketPage() {
                   <Input
                     id="violation"
                     value={formData.violation}
-                    onChange={(e) => handleInputChange("violation", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("violation", e.target.value)
+                    }
                     placeholder="e.g., Speeding, Red Light Violation"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="violation_code">Violation Code</Label>
                     <Input
                       id="violation_code"
                       value={formData.violation_code}
-                      onChange={(e) => handleInputChange("violation_code", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("violation_code", e.target.value)
+                      }
                       placeholder="e.g., 22349(a) VC"
                     />
                   </div>
@@ -288,7 +316,12 @@ export default function AddTicketPage() {
                     <Input
                       id="violation_description"
                       value={formData.violation_description}
-                      onChange={(e) => handleInputChange("violation_description", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "violation_description",
+                          e.target.value
+                        )
+                      }
                       placeholder="Additional violation details"
                     />
                   </div>
@@ -300,15 +333,18 @@ export default function AddTicketPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Location Information</CardTitle>
-                <CardDescription>
-                  Where the violation occurred
-                </CardDescription>
+                <CardDescription>Where the violation occurred</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="state">State *</Label>
-                    <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                    <Select
+                      value={formData.state}
+                      onValueChange={(value) =>
+                        handleInputChange("state", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select state" />
                       </SelectTrigger>
@@ -332,7 +368,9 @@ export default function AddTicketPage() {
                     <Input
                       id="county"
                       value={formData.county}
-                      onChange={(e) => handleInputChange("county", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("county", e.target.value)
+                      }
                       placeholder="e.g., Los Angeles County"
                       required
                     />
@@ -342,7 +380,9 @@ export default function AddTicketPage() {
                     <Input
                       id="court"
                       value={formData.court}
-                      onChange={(e) => handleInputChange("court", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("court", e.target.value)
+                      }
                       placeholder="e.g., Beverly Hills Municipal Court"
                       required
                     />
@@ -355,24 +395,34 @@ export default function AddTicketPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Driver Information</CardTitle>
-                <CardDescription>
-                  Your driver's license details
-                </CardDescription>
+                <CardDescription>Your driver's license details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="driver_license_number">Driver's License Number</Label>
+                    <Label htmlFor="driver_license_number">
+                      Driver's License Number
+                    </Label>
                     <Input
                       id="driver_license_number"
                       value={formData.driver_license_number}
-                      onChange={(e) => handleInputChange("driver_license_number", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "driver_license_number",
+                          e.target.value
+                        )
+                      }
                       placeholder="e.g., D1234567"
                     />
                   </div>
                   <div>
                     <Label htmlFor="driver_license_state">License State</Label>
-                    <Select value={formData.driver_license_state} onValueChange={(value) => handleInputChange("driver_license_state", value)}>
+                    <Select
+                      value={formData.driver_license_state}
+                      onValueChange={(value) =>
+                        handleInputChange("driver_license_state", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select state" />
                       </SelectTrigger>
@@ -387,23 +437,32 @@ export default function AddTicketPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="date_of_birth">Date of Birth</Label>
                     <Input
                       id="date_of_birth"
                       type="date"
                       value={formData.date_of_birth}
-                      onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("date_of_birth", e.target.value)
+                      }
                     />
                   </div>
                   <div>
-                    <Label htmlFor="license_expiration_date">License Expiration</Label>
+                    <Label htmlFor="license_expiration_date">
+                      License Expiration
+                    </Label>
                     <Input
                       id="license_expiration_date"
                       type="date"
                       value={formData.license_expiration_date}
-                      onChange={(e) => handleInputChange("license_expiration_date", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "license_expiration_date",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -419,13 +478,15 @@ export default function AddTicketPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="vehicle_plate">License Plate</Label>
                     <Input
                       id="vehicle_plate"
                       value={formData.vehicle_plate}
-                      onChange={(e) => handleInputChange("vehicle_plate", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("vehicle_plate", e.target.value)
+                      }
                       placeholder="e.g., ABC123"
                     />
                   </div>
@@ -435,7 +496,9 @@ export default function AddTicketPage() {
                       id="vehicle_year"
                       type="number"
                       value={formData.vehicle_year}
-                      onChange={(e) => handleInputChange("vehicle_year", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("vehicle_year", e.target.value)
+                      }
                       placeholder="e.g., 2020"
                     />
                   </div>
@@ -447,7 +510,9 @@ export default function AddTicketPage() {
                     <Input
                       id="vehicle_make"
                       value={formData.vehicle_make}
-                      onChange={(e) => handleInputChange("vehicle_make", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("vehicle_make", e.target.value)
+                      }
                       placeholder="e.g., Toyota"
                     />
                   </div>
@@ -456,7 +521,9 @@ export default function AddTicketPage() {
                     <Input
                       id="vehicle_model"
                       value={formData.vehicle_model}
-                      onChange={(e) => handleInputChange("vehicle_model", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("vehicle_model", e.target.value)
+                      }
                       placeholder="e.g., Camry"
                     />
                   </div>
@@ -465,7 +532,9 @@ export default function AddTicketPage() {
                     <Input
                       id="vehicle_color"
                       value={formData.vehicle_color}
-                      onChange={(e) => handleInputChange("vehicle_color", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("vehicle_color", e.target.value)
+                      }
                       placeholder="e.g., Silver"
                     />
                   </div>
@@ -482,13 +551,15 @@ export default function AddTicketPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="officer_name">Officer Name</Label>
                     <Input
                       id="officer_name"
                       value={formData.officer_name}
-                      onChange={(e) => handleInputChange("officer_name", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("officer_name", e.target.value)
+                      }
                       placeholder="e.g., Officer Smith"
                     />
                   </div>
@@ -497,7 +568,12 @@ export default function AddTicketPage() {
                     <Input
                       id="officer_badge_number"
                       value={formData.officer_badge_number}
-                      onChange={(e) => handleInputChange("officer_badge_number", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "officer_badge_number",
+                          e.target.value
+                        )
+                      }
                       placeholder="e.g., 12345"
                     />
                   </div>
@@ -531,7 +607,9 @@ export default function AddTicketPage() {
                             alt="Ticket preview"
                             className="mx-auto h-32 w-auto rounded-lg object-cover"
                           />
-                          <p className="text-sm text-gray-600">Click to change image</p>
+                          <p className="text-sm text-gray-600">
+                            Click to change image
+                          </p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -570,14 +648,16 @@ export default function AddTicketPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="court_date">Court Date</Label>
                     <Input
                       id="court_date"
                       type="date"
                       value={formData.court_date}
-                      onChange={(e) => handleInputChange("court_date", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("court_date", e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -585,7 +665,9 @@ export default function AddTicketPage() {
                     <Input
                       id="court_location"
                       value={formData.court_location}
-                      onChange={(e) => handleInputChange("court_location", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("court_location", e.target.value)
+                      }
                       placeholder="e.g., 123 Main St, City, State"
                     />
                   </div>
@@ -594,18 +676,19 @@ export default function AddTicketPage() {
             </Card>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/dashboard")}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
               >
                 {isLoading ? "Creating Ticket..." : "Create Ticket"}
               </Button>

@@ -1,17 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CreditCard, CheckCircle, Lock, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleCheckTickets = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
+  };
+
+  const handleSignUp = () => {
+    navigate("/auth");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
             Pay all your traffic tickets in one place
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">
             Skip the courthouse lines and late fees. Submit your ticket
             information, view all outstanding tickets, and pay securely online
             in minutes.
@@ -20,18 +37,20 @@ export default function LandingPage() {
             <Button
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+              onClick={handleCheckTickets}
             >
-              Check My Tickets
+              {user ? "View My Tickets" : "Check My Tickets"}
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="border-gray-300 px-8 py-3 bg-transparent"
+              onClick={handleSignUp}
             >
-              Sign Up / Log In
+              {user ? "Dashboard" : "Sign Up / Log In"}
             </Button>
           </div>
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               <span>Bank-level security</span>
@@ -49,13 +68,13 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 bg-gray-50">
+      <section id="how-it-works" className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               How it works
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Get your tickets resolved in three simple steps
             </p>
           </div>
@@ -66,10 +85,10 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-blue-600">1</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                   Submit Info
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Enter your ticket number, license plate, or personal
                   information. We'll search across multiple counties to find
                   your tickets.
@@ -82,10 +101,10 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-blue-600">2</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                   See Tickets
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   View all your outstanding tickets in one dashboard. See
                   amounts due, due dates, and court information all in one
                   place.
@@ -98,10 +117,10 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-blue-600">3</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                   Pay Securely
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Pay with credit card, debit card, or bank transfer. Get
                   instant confirmation and email receipts for your records.
                 </p>
@@ -115,10 +134,10 @@ export default function LandingPage() {
       <section id="security" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Your security is our priority
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               We use industry-leading security measures to protect your personal
               and payment information
             </p>
@@ -129,8 +148,10 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">256-bit SSL</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-foreground mb-2">
+                256-bit SSL
+              </h3>
+              <p className="text-sm text-muted-foreground">
                 Bank-level encryption for all data transmission
               </p>
             </div>
@@ -139,10 +160,10 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
+              <h3 className="font-semibold text-foreground mb-2">
                 Stripe Powered
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Secure payments powered by Stripe
               </p>
             </div>
@@ -151,10 +172,10 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
+              <h3 className="font-semibold text-foreground mb-2">
                 PCI Compliant
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Meets all payment card industry standards
               </p>
             </div>
@@ -163,17 +184,17 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Verified</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-foreground mb-2">Verified</h3>
+              <p className="text-sm text-muted-foreground">
                 Trusted by courts and government agencies
               </p>
             </div>
           </div>
 
           <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-4 bg-gray-50 rounded-lg px-6 py-4">
-              <Lock className="w-5 h-5 text-gray-600" />
-              <span className="text-sm text-gray-600">
+            <div className="inline-flex items-center gap-4 bg-muted rounded-lg px-6 py-4">
+              <Lock className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 <strong>Secure payments powered by Stripe</strong> • Your
                 payment information is never stored on our servers
               </span>
@@ -195,22 +216,24 @@ export default function LandingPage() {
             <Button
               size="lg"
               className="bg-white text-blue-600 hover:bg-gray-50 px-8 py-3"
+              onClick={handleCheckTickets}
             >
-              Check My Tickets
+              {user ? "View My Tickets" : "Check My Tickets"}
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 bg-transparent"
+              onClick={handleSignUp}
             >
-              Create Account
+              {user ? "Dashboard" : "Create Account"}
             </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="bg-muted text-muted-foreground py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
@@ -218,31 +241,40 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-semibold text-white">
+                <span className="text-xl font-semibold text-foreground">
                   TicketPay
                 </span>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 The easiest way to pay traffic tickets online. Fast, secure, and
                 reliable.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
+              <h4 className="font-semibold text-foreground mb-4">Product</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     How It Works
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Pricing
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Security
                   </a>
                 </li>
@@ -250,20 +282,29 @@ export default function LandingPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-4">Support</h4>
+              <h4 className="font-semibold text-foreground mb-4">Support</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Contact
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Status
                   </a>
                 </li>
@@ -271,20 +312,29 @@ export default function LandingPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <h4 className="font-semibold text-foreground mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Cookie Policy
                   </a>
                 </li>
@@ -292,7 +342,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+          <div className="border-t border-border/50 mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>&copy; 2024 TicketPay. All rights reserved.</p>
           </div>
         </div>
