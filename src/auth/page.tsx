@@ -13,6 +13,7 @@ import { SupabaseService } from "@/lib/supabaseService";
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailForResend, setEmailForResend] = useState("");
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -25,6 +26,11 @@ export default function AuthPage() {
     const password = formData.get("signin-password") as string;
 
     try {
+      console.log("Attempting signin with:", { email, password: "***" });
+
+      // Clear any cached session first
+      await supabase.auth.signOut();
+
       const { data, error: authError } = await supabase.auth.signInWithPassword(
         {
           email,
@@ -33,17 +39,31 @@ export default function AuthPage() {
       );
 
       if (authError) {
-        setError(authError.message);
+        console.error("Signin error:", authError);
+
+        // Handle specific error cases
+        if (authError.message.includes("Email not confirmed")) {
+          setError(
+            "Please check your email and click the confirmation link before signing in."
+          );
+        } else if (authError.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please try again.");
+        } else {
+          setError(authError.message);
+        }
+
         setIsLoading(false);
         return;
       }
 
       if (data.user) {
+        console.log("Signin successful, user:", data.user);
+        console.log("Session:", data.session);
         navigate("/dashboard");
       }
     } catch (err) {
-      setError("An unexpected error occurred");
       console.error("Signin error:", err);
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +81,22 @@ export default function AuthPage() {
     const password = formData.get("signup-password") as string;
     const confirmPassword = formData.get("signup-confirm") as string;
 
+    // Debug: Log the extracted values
+    console.log("Form data extracted:", {
+      firstName,
+      lastName,
+      email,
+      password,
+      confirmPassword,
+    });
+
+    // Validate required fields
+    if (!email || !password) {
+      setError("Email and password are required");
+      setIsLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -73,8 +109,17 @@ export default function AuthPage() {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
+      // Debug: Log what we're sending to Supabase
+      const signupData = {
         email,
         password,
         options: {
@@ -83,7 +128,10 @@ export default function AuthPage() {
             last_name: lastName,
           },
         },
-      });
+      };
+      console.log("Sending to supabase.auth.signUp:", signupData);
+
+      const { data, error: authError } = await supabase.auth.signUp(signupData);
 
       if (authError) {
         setError(authError.message);
@@ -92,17 +140,57 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        await SupabaseService.createUser(
-          data.user.id,
-          email,
-          firstName,
-          lastName
-        );
-        navigate("/dashboard");
+        console.log("Signup successful, user:", data.user);
+        console.log("Email confirmed:", data.user.email_confirmed_at);
+
+        // Since email confirmation is disabled, always navigate to dashboard
+        console.log("Signup successful, navigating to dashboard");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       }
     } catch (err) {
       setError("An unexpected error occurred");
       console.error("Signup error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearAuth = async () => {
+    try {
+      await supabase.auth.signOut();
+      setError("");
+      setEmailForResend("");
+      console.log("Auth state cleared");
+    } catch (err) {
+      console.error("Error clearing auth:", err);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!emailForResend) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: emailForResend,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setError("Confirmation email sent! Please check your inbox.");
+      }
+    } catch (err) {
+      setError("Failed to resend confirmation email");
+      console.error("Resend error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -244,6 +332,22 @@ export default function AuthPage() {
                     </div>
                     {error && (
                       <div className="text-red-600 text-sm">{error}</div>
+                    )}
+                    {error && (
+                      <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <p className="text-sm text-yellow-800 mb-2">
+                          Having auth issues? Try clearing the auth state:
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearAuth}
+                          className="w-full"
+                        >
+                          Clear Auth State & Retry
+                        </Button>
+                      </div>
                     )}
                     <Button
                       type="submit"

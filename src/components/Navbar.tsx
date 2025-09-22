@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut } from "lucide-react";
 
 export default function Navbar() {
-  const { user, signOut } = useSupabaseAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
 
   const handleSignOut = async () => {

@@ -1,4 +1,4 @@
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useSupabaseAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (

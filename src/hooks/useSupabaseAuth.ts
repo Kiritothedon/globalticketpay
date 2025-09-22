@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { SupabaseService } from "@/lib/supabaseService";
 
 export function useSupabaseAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -39,12 +38,19 @@ export function useSupabaseAuth() {
               nameParts.slice(1).join(" ") || user.user_metadata?.last_name;
 
             // Create or update user in our database
-            await SupabaseService.createOrUpdateGoogleUser(
-              user.id,
-              user.email || "",
-              firstName,
-              lastName
-            );
+            const { error: userError } = await supabase.from("users").upsert({
+              id: user.id,
+              email: user.email || "",
+              first_name: firstName,
+              last_name: lastName,
+            });
+
+            if (userError) {
+              console.error(
+                "Error creating/updating Google user profile:",
+                userError
+              );
+            }
           } catch (error) {
             console.error("Error handling Google OAuth user:", error);
           }

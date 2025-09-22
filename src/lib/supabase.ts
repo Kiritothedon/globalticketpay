@@ -7,10 +7,14 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Expose supabase client globally for browser console testing
+if (typeof window !== "undefined") {
+  (window as any).supabase = supabase;
+}
+
 // Database types
 export interface User {
-  id: string;
-  supabase_id: string;
+  id: string; // This is the auth.uid() - the primary key
   email: string;
   first_name?: string;
   last_name?: string;
@@ -25,8 +29,17 @@ export interface Ticket {
   violation: string;
   amount: number;
   due_date: string;
-  status: "pending" | "overdue" | "paid";
+  status: "pending" | "overdue" | "paid" | "disputed" | "dismissed";
   court: string;
+  violation_date?: string;
+  officer_name?: string;
+  vehicle_plate?: string;
+  vehicle_make?: string;
+  vehicle_model?: string;
+  vehicle_year?: number;
+  notes?: string;
+  payment_method?: string;
+  payment_date?: string;
   created_at: string;
   updated_at: string;
 }

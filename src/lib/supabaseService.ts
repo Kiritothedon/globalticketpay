@@ -1,4 +1,4 @@
-import { supabase, User } from "./supabase";
+import { supabase, User, Ticket } from "./supabase";
 
 export class SupabaseService {
   // Create user in Supabase after successful signup
@@ -12,7 +12,7 @@ export class SupabaseService {
       const { data, error } = await supabase
         .from("users")
         .insert({
-          supabase_id: supabaseId,
+          id: supabaseId, // Use id instead of supabase_id
           email: email,
           first_name: firstName,
           last_name: lastName,
@@ -38,7 +38,7 @@ export class SupabaseService {
       const { data, error } = await supabase
         .from("users")
         .select("*")
-        .eq("supabase_id", supabaseId)
+        .eq("id", supabaseId) // Use id instead of supabase_id
         .single();
 
       if (error) {
@@ -78,7 +78,7 @@ export class SupabaseService {
             last_name: lastName || existingUser.last_name,
             updated_at: new Date().toISOString(),
           })
-          .eq("supabase_id", supabaseId)
+          .eq("id", supabaseId) // Use id instead of supabase_id
           .select()
           .single();
 
@@ -113,6 +113,92 @@ export class SupabaseService {
     } catch (error) {
       console.error("Supabase connection test error:", error);
       return false;
+    }
+  }
+
+  // Ticket management methods
+  static async createTicket(
+    ticketData: Omit<Ticket, "id" | "created_at" | "updated_at">
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from("tickets")
+        .insert(ticketData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating ticket:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Supabase service error:", error);
+      throw error;
+    }
+  }
+
+  static async getUserTickets(userId: string): Promise<Ticket[]> {
+    try {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching tickets:", error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Supabase service error:", error);
+      throw error;
+    }
+  }
+
+  static async updateTicket(ticketId: string, updates: Partial<Ticket>) {
+    try {
+      const { data, error } = await supabase
+        .from("tickets")
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", ticketId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating ticket:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Supabase service error:", error);
+      throw error;
+    }
+  }
+
+  static async deleteTicket(ticketId: string) {
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .delete()
+        .eq("id", ticketId);
+
+      if (error) {
+        console.error("Error deleting ticket:", error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Supabase service error:", error);
+      throw error;
     }
   }
 }
