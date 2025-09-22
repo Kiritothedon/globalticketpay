@@ -1,327 +1,618 @@
-import type React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, AlertCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Upload, FileText, Camera } from "lucide-react";
+import { SupabaseService } from "@/lib/supabaseService";
+import { Ticket } from "@/lib/supabase";
 
 export default function AddTicketPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [searchMethod, setSearchMethod] = useState("ticket-number");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    // Basic ticket information
+    ticket_number: "",
+    violation_date: "",
+    due_date: "",
+    amount: "",
+    
+    // Location information
+    state: "",
+    county: "",
+    court: "",
+    
+    // Violation details
+    violation: "",
+    violation_code: "",
+    violation_description: "",
+    
+    // Driver information
+    driver_license_number: "",
+    driver_license_state: "",
+    date_of_birth: "",
+    license_expiration_date: "",
+    
+    // Vehicle information
+    vehicle_plate: "",
+    vehicle_make: "",
+    vehicle_model: "",
+    vehicle_year: "",
+    vehicle_color: "",
+    
+    // Officer information
+    officer_name: "",
+    officer_badge_number: "",
+    
+    // Additional information
+    notes: "",
+    court_date: "",
+    court_location: "",
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     setIsLoading(true);
-    // Placeholder for ticket search logic
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      // Create ticket data
+      const ticketData: Omit<Ticket, "id" | "created_at" | "updated_at"> = {
+        user_id: user.id,
+        ticket_number: formData.ticket_number,
+        violation_date: formData.violation_date || undefined,
+        due_date: formData.due_date,
+        amount: parseFloat(formData.amount),
+        state: formData.state,
+        county: formData.county,
+        court: formData.court,
+        violation: formData.violation,
+        violation_code: formData.violation_code || undefined,
+        violation_description: formData.violation_description || undefined,
+        driver_license_number: formData.driver_license_number || undefined,
+        driver_license_state: formData.driver_license_state || undefined,
+        date_of_birth: formData.date_of_birth || undefined,
+        license_expiration_date: formData.license_expiration_date || undefined,
+        vehicle_plate: formData.vehicle_plate || undefined,
+        vehicle_make: formData.vehicle_make || undefined,
+        vehicle_model: formData.vehicle_model || undefined,
+        vehicle_year: formData.vehicle_year ? parseInt(formData.vehicle_year) : undefined,
+        vehicle_color: formData.vehicle_color || undefined,
+        officer_name: formData.officer_name || undefined,
+        officer_badge_number: formData.officer_badge_number || undefined,
+        status: "pending",
+        notes: formData.notes || undefined,
+        court_date: formData.court_date || undefined,
+        court_location: formData.court_location || undefined,
+      };
+
+      // Create ticket
+      const newTicket = await SupabaseService.createTicket(ticketData);
+
+      // Upload image if provided
+      if (selectedImage) {
+        const imageData = await SupabaseService.uploadTicketImage(
+          selectedImage,
+          newTicket.id,
+          user.id
+        );
+        
+        // Update ticket with image info
+        await SupabaseService.updateTicket(newTicket.id, {
+          ticket_image_url: imageData.url,
+          ticket_image_path: imageData.path,
+        });
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+
+    } catch (err) {
+      console.error("Error creating ticket:", err);
+      setError("Failed to create ticket. Please try again.");
+    } finally {
       setIsLoading(false);
-      // Would redirect to results or dashboard
-    }, 2000);
+    }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Ticket Created Successfully!
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Your ticket has been added to your dashboard.
+              </p>
+              <Button onClick={() => navigate("/dashboard")} className="w-full">
+                Go to Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/dashboard"
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Link>
-            <div className="h-4 w-px bg-gray-300" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Add Ticket Request
-              </h1>
-              <p className="text-gray-600">Search for your traffic tickets</p>
-            </div>
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Add New Ticket</h1>
+            <p className="text-gray-600">
+              Enter your traffic ticket information
+            </p>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Form Content */}
-        <main className="flex-1 p-6">
-          <div className="max-w-2xl mx-auto">
-            {/* Info Card */}
-            <Card className="mb-8 border-blue-200 bg-blue-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+      {/* Main Content */}
+      <main className="p-6">
+        <div className="max-w-4xl mx-auto">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Ticket Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Ticket Information</CardTitle>
+                <CardDescription>
+                  Enter the essential details from your ticket
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-medium text-blue-900 mb-1">
-                      How to find your tickets
-                    </h3>
-                    <p className="text-sm text-blue-700">
-                      You can search using your ticket number, license plate, or
-                      personal information. We'll search across multiple
-                      counties to find all your outstanding tickets.
-                    </p>
+                    <Label htmlFor="ticket_number">Ticket Number *</Label>
+                    <Input
+                      id="ticket_number"
+                      value={formData.ticket_number}
+                      onChange={(e) => handleInputChange("ticket_number", e.target.value)}
+                      placeholder="e.g., TK-123456"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="amount">Amount *</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      value={formData.amount}
+                      onChange={(e) => handleInputChange("amount", e.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="violation_date">Violation Date</Label>
+                    <Input
+                      id="violation_date"
+                      type="date"
+                      value={formData.violation_date}
+                      onChange={(e) => handleInputChange("violation_date", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="due_date">Due Date *</Label>
+                    <Input
+                      id="due_date"
+                      type="date"
+                      value={formData.due_date}
+                      onChange={(e) => handleInputChange("due_date", e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="violation">Violation *</Label>
+                  <Input
+                    id="violation"
+                    value={formData.violation}
+                    onChange={(e) => handleInputChange("violation", e.target.value)}
+                    placeholder="e.g., Speeding, Red Light Violation"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="violation_code">Violation Code</Label>
+                    <Input
+                      id="violation_code"
+                      value={formData.violation_code}
+                      onChange={(e) => handleInputChange("violation_code", e.target.value)}
+                      placeholder="e.g., 22349(a) VC"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="violation_description">Description</Label>
+                    <Input
+                      id="violation_description"
+                      value={formData.violation_description}
+                      onChange={(e) => handleInputChange("violation_description", e.target.value)}
+                      placeholder="Additional violation details"
+                    />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Search Form */}
+            {/* Location Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Search for Tickets</CardTitle>
+                <CardTitle>Location Information</CardTitle>
                 <CardDescription>
-                  Choose your preferred search method below
+                  Where the violation occurred
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Search Method Selection */}
-                  <div className="space-y-3">
-                    <Label>Search Method</Label>
-                    <Select
-                      value={searchMethod}
-                      onValueChange={setSearchMethod}
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Choose how to search" />
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="state">State *</Label>
+                    <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ticket-number">
-                          Ticket Number
-                        </SelectItem>
-                        <SelectItem value="license-plate">
-                          License Plate
-                        </SelectItem>
-                        <SelectItem value="personal-info">
-                          Personal Information
-                        </SelectItem>
+                        <SelectItem value="CA">California</SelectItem>
+                        <SelectItem value="NY">New York</SelectItem>
+                        <SelectItem value="TX">Texas</SelectItem>
+                        <SelectItem value="FL">Florida</SelectItem>
+                        <SelectItem value="IL">Illinois</SelectItem>
+                        <SelectItem value="PA">Pennsylvania</SelectItem>
+                        <SelectItem value="OH">Ohio</SelectItem>
+                        <SelectItem value="GA">Georgia</SelectItem>
+                        <SelectItem value="NC">North Carolina</SelectItem>
+                        <SelectItem value="MI">Michigan</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Conditional Form Fields */}
-                  {searchMethod === "ticket-number" && (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="ticket-number">Ticket Number</Label>
-                        <Input
-                          id="ticket-number"
-                          type="text"
-                          placeholder="Enter your ticket number (e.g., 1234567890)"
-                          required
-                          className="h-11"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="county">County (Optional)</Label>
-                        <Select>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select county if known" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="los-angeles">
-                              Los Angeles County
-                            </SelectItem>
-                            <SelectItem value="orange">
-                              Orange County
-                            </SelectItem>
-                            <SelectItem value="san-diego">
-                              San Diego County
-                            </SelectItem>
-                            <SelectItem value="riverside">
-                              Riverside County
-                            </SelectItem>
-                            <SelectItem value="san-bernardino">
-                              San Bernardino County
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {searchMethod === "license-plate" && (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="license-plate">
-                          License Plate Number
-                        </Label>
-                        <Input
-                          id="license-plate"
-                          type="text"
-                          placeholder="Enter your license plate number"
-                          required
-                          className="h-11"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <Select>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select state" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ca">California</SelectItem>
-                            <SelectItem value="ny">New York</SelectItem>
-                            <SelectItem value="tx">Texas</SelectItem>
-                            <SelectItem value="fl">Florida</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {searchMethod === "personal-info" && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="first-name">First Name</Label>
-                          <Input
-                            id="first-name"
-                            type="text"
-                            placeholder="Your first name"
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="last-name">Last Name</Label>
-                          <Input
-                            id="last-name"
-                            type="text"
-                            placeholder="Your last name"
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="date-of-birth">Date of Birth</Label>
-                        <Input
-                          id="date-of-birth"
-                          type="date"
-                          required
-                          className="h-11"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="drivers-license">
-                          Driver's License Number (Optional)
-                        </Label>
-                        <Input
-                          id="drivers-license"
-                          type="text"
-                          placeholder="Your driver's license number"
-                          className="h-11"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Additional Information */}
-                  <div className="space-y-2">
-                    <Label htmlFor="additional-info">
-                      Additional Information (Optional)
-                    </Label>
-                    <Textarea
-                      id="additional-info"
-                      placeholder="Any additional details that might help us find your tickets..."
-                      className="min-h-[100px]"
+                  <div>
+                    <Label htmlFor="county">County *</Label>
+                    <Input
+                      id="county"
+                      value={formData.county}
+                      onChange={(e) => handleInputChange("county", e.target.value)}
+                      placeholder="e.g., Los Angeles County"
+                      required
                     />
                   </div>
-
-                  {/* Submit Button */}
-                  <div className="flex items-center justify-between pt-4">
-                    <p className="text-sm text-gray-500">
-                      We'll search across multiple counties and jurisdictions
-                    </p>
-                    <Button
-                      type="submit"
-                      className="bg-blue-600 hover:bg-blue-700 px-8"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Search className="w-4 h-4 mr-2 animate-spin" />
-                          Searching...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-4 h-4 mr-2" />
-                          Search Tickets
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Help Section */}
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle className="text-lg">Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 text-sm">
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Can't find your ticket number?
-                    </h4>
-                    <p className="text-gray-600">
-                      Try searching with your license plate or personal
-                      information. We can often find tickets even without the
-                      ticket number.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Multiple counties?
-                    </h4>
-                    <p className="text-gray-600">
-                      Our system searches across multiple jurisdictions
-                      automatically. You don't need to submit separate requests
-                      for each county.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Still having trouble?
-                    </h4>
-                    <p className="text-gray-600">
-                      Contact our support team at{" "}
-                      <a
-                        href="mailto:support@ticketpay.com"
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        support@ticketpay.com
-                      </a>{" "}
-                      or call (555) 123-4567.
-                    </p>
+                    <Label htmlFor="court">Court *</Label>
+                    <Input
+                      id="court"
+                      value={formData.court}
+                      onChange={(e) => handleInputChange("court", e.target.value)}
+                      placeholder="e.g., Beverly Hills Municipal Court"
+                      required
+                    />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </main>
-      </div>
+
+            {/* Driver Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Driver Information</CardTitle>
+                <CardDescription>
+                  Your driver's license details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="driver_license_number">Driver's License Number</Label>
+                    <Input
+                      id="driver_license_number"
+                      value={formData.driver_license_number}
+                      onChange={(e) => handleInputChange("driver_license_number", e.target.value)}
+                      placeholder="e.g., D1234567"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="driver_license_state">License State</Label>
+                    <Select value={formData.driver_license_state} onValueChange={(value) => handleInputChange("driver_license_state", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CA">California</SelectItem>
+                        <SelectItem value="NY">New York</SelectItem>
+                        <SelectItem value="TX">Texas</SelectItem>
+                        <SelectItem value="FL">Florida</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="date_of_birth">Date of Birth</Label>
+                    <Input
+                      id="date_of_birth"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="license_expiration_date">License Expiration</Label>
+                    <Input
+                      id="license_expiration_date"
+                      type="date"
+                      value={formData.license_expiration_date}
+                      onChange={(e) => handleInputChange("license_expiration_date", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Vehicle Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Vehicle Information</CardTitle>
+                <CardDescription>
+                  Details about the vehicle involved
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="vehicle_plate">License Plate</Label>
+                    <Input
+                      id="vehicle_plate"
+                      value={formData.vehicle_plate}
+                      onChange={(e) => handleInputChange("vehicle_plate", e.target.value)}
+                      placeholder="e.g., ABC123"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle_year">Year</Label>
+                    <Input
+                      id="vehicle_year"
+                      type="number"
+                      value={formData.vehicle_year}
+                      onChange={(e) => handleInputChange("vehicle_year", e.target.value)}
+                      placeholder="e.g., 2020"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="vehicle_make">Make</Label>
+                    <Input
+                      id="vehicle_make"
+                      value={formData.vehicle_make}
+                      onChange={(e) => handleInputChange("vehicle_make", e.target.value)}
+                      placeholder="e.g., Toyota"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle_model">Model</Label>
+                    <Input
+                      id="vehicle_model"
+                      value={formData.vehicle_model}
+                      onChange={(e) => handleInputChange("vehicle_model", e.target.value)}
+                      placeholder="e.g., Camry"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicle_color">Color</Label>
+                    <Input
+                      id="vehicle_color"
+                      value={formData.vehicle_color}
+                      onChange={(e) => handleInputChange("vehicle_color", e.target.value)}
+                      placeholder="e.g., Silver"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Officer Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Officer Information</CardTitle>
+                <CardDescription>
+                  Details about the citing officer
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="officer_name">Officer Name</Label>
+                    <Input
+                      id="officer_name"
+                      value={formData.officer_name}
+                      onChange={(e) => handleInputChange("officer_name", e.target.value)}
+                      placeholder="e.g., Officer Smith"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="officer_badge_number">Badge Number</Label>
+                    <Input
+                      id="officer_badge_number"
+                      value={formData.officer_badge_number}
+                      onChange={(e) => handleInputChange("officer_badge_number", e.target.value)}
+                      placeholder="e.g., 12345"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Image Upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Ticket Image (Optional)</CardTitle>
+                <CardDescription>
+                  Upload a photo of your ticket for reference
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      {imagePreview ? (
+                        <div className="space-y-2">
+                          <img
+                            src={imagePreview}
+                            alt="Ticket preview"
+                            className="mx-auto h-32 w-auto rounded-lg object-cover"
+                          />
+                          <p className="text-sm text-gray-600">Click to change image</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Camera className="w-12 h-12 text-gray-400 mx-auto" />
+                          <p className="text-sm text-gray-600">
+                            Click to upload ticket image
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, or PDF up to 10MB
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+                <CardDescription>
+                  Any additional notes or court information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder="Any additional information about the ticket..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="court_date">Court Date</Label>
+                    <Input
+                      id="court_date"
+                      type="date"
+                      value={formData.court_date}
+                      onChange={(e) => handleInputChange("court_date", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="court_location">Court Location</Label>
+                    <Input
+                      id="court_location"
+                      value={formData.court_location}
+                      onChange={(e) => handleInputChange("court_location", e.target.value)}
+                      placeholder="e.g., 123 Main St, City, State"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/dashboard")}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? "Creating Ticket..." : "Create Ticket"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
