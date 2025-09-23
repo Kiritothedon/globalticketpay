@@ -22,14 +22,16 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Last Updated */}
-      <div className="bg-muted/50 border-b">
-        <div className="container mx-auto px-4 py-2">
-          <p className="text-sm text-muted-foreground">
-            Last Updated: September 22, 2025
-          </p>
+      {/* Beta Signup Banner */}
+      {!user && (
+        <div className="bg-blue-600 text-white py-3 px-4">
+          <div className="container mx-auto text-center">
+            <p className="text-sm">
+              🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Hero Section */}
       <section className="py-20 px-4">
@@ -58,14 +60,6 @@ export default function LandingPage() {
             >
               {user ? "Dashboard" : "Sign Up / Log In"}
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-gray-300 px-8 py-3 bg-transparent"
-              onClick={() => navigate("/site-list")}
-            >
-              Court Sites
-            </Button>
           </div>
           <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -79,6 +73,16 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>50,000+ tickets paid</span>
+            </div>
+          </div>
+          
+          {/* Beta Version Indicator */}
+          <div className="mt-6 flex justify-center">
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Beta v0.1</span>
+              <span className="text-green-600">•</span>
+              <span>{new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
           </div>
         </div>

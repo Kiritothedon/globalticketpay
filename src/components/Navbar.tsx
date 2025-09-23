@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -113,6 +113,12 @@ export default function Navbar() {
                         <Link to="/dashboard" className="flex items-center">
                           <User className="mr-2 h-4 w-4" />
                           <span>Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="flex items-center">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />

@@ -9,16 +9,21 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Eye, Trash2 } from "lucide-react";
+import { FileText, Plus, Eye, Trash2, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Ticket } from "@/lib/supabase";
 import { SupabaseService } from "@/lib/supabaseService";
+import { PaymentModal } from "@/components/PaymentModal";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paymentModal, setPaymentModal] = useState<{
+    isOpen: boolean;
+    ticket: Ticket | null;
+  }>({ isOpen: false, ticket: null });
 
   // Load user tickets
   useEffect(() => {
@@ -100,6 +105,32 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Error deleting ticket:", err);
       setError("Failed to delete ticket");
+    }
+  };
+
+  const handlePayTicket = (ticket: Ticket) => {
+    setPaymentModal({ isOpen: true, ticket });
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (!paymentModal.ticket) return;
+
+    try {
+      // Update ticket status to paid
+      await SupabaseService.updateTicket(paymentModal.ticket.id, {
+        status: "paid",
+        payment_date: new Date().toISOString(),
+        payment_method: "credit_card",
+      });
+
+      // Refresh tickets
+      const updatedTickets = await SupabaseService.getUserTickets(user!.id);
+      setTickets(updatedTickets);
+
+      setPaymentModal({ isOpen: false, ticket: null });
+    } catch (err) {
+      console.error("Error updating ticket status:", err);
+      setError("Payment processed but failed to update ticket status");
     }
   };
 
@@ -303,6 +334,17 @@ export default function DashboardPage() {
                           </td>
                           <td className="py-3 sm:py-4 px-2 sm:px-4">
                             <div className="flex items-center space-x-1 sm:space-x-2">
+                              {ticket.status === "pending" || ticket.status === "overdue" ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handlePayTicket(ticket)}
+                                  className="text-green-600 hover:text-green-700 h-8 w-8 p-0"
+                                  title="Pay Ticket"
+                                >
+                                  <CreditCard className="w-4 h-4" />
+                                </Button>
+                              ) : null}
                               {ticket.ticket_image_url && (
                                 <Button
                                   variant="ghost"
@@ -314,6 +356,7 @@ export default function DashboardPage() {
                                     )
                                   }
                                   className="h-8 w-8 p-0"
+                                  title="View Ticket Image"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
@@ -323,6 +366,7 @@ export default function DashboardPage() {
                                 size="sm"
                                 onClick={() => handleDeleteTicket(ticket.id)}
                                 className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
+                                title="Delete Ticket"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -338,6 +382,17 @@ export default function DashboardPage() {
           </Card>
         </main>
       </div>
+
+      {/* Payment Modal */}
+      {paymentModal.ticket && (
+        <PaymentModal
+          isOpen={paymentModal.isOpen}
+          onClose={() => setPaymentModal({ isOpen: false, ticket: null })}
+          ticketAmount={paymentModal.ticket.amount}
+          ticketNumber={paymentModal.ticket.ticket_number}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }
