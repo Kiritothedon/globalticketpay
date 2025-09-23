@@ -26,7 +26,7 @@ export default function LandingPage() {
       {!user && (
         <div className="bg-blue-600 text-white py-3 px-4">
           <div className="container mx-auto text-center">
-            <p className="text-sm">
+            <p className="text-sm px-4">
               🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates.
             </p>
           </div>
@@ -248,6 +248,64 @@ export default function LandingPage() {
               onClick={handleSignUp}
             >
               {user ? "Dashboard" : "Create Account"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 bg-transparent"
+              onClick={() => window.open('#courts', '_self')}
+            >
+              View Supported Courts
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Supported Courts Section */}
+      <section id="courts" className="py-20 bg-muted/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Supported Courts
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              We work with courts across the United States to make ticket payments easier
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">New York</h3>
+              <p className="text-sm text-muted-foreground">All 62 counties</p>
+            </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">California</h3>
+              <p className="text-sm text-muted-foreground">Major metropolitan areas</p>
+            </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">Texas</h3>
+              <p className="text-sm text-muted-foreground">Harris, Dallas, Tarrant counties</p>
+            </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">Florida</h3>
+              <p className="text-sm text-muted-foreground">Miami-Dade, Broward, Orange counties</p>
+            </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">Illinois</h3>
+              <p className="text-sm text-muted-foreground">Cook County and surrounding areas</p>
+            </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">More Coming Soon</h3>
+              <p className="text-sm text-muted-foreground">We're expanding nationwide</p>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-muted-foreground mb-4">
+              Don't see your court? Contact us to request support for your area.
+            </p>
+            <Button variant="outline">
+              Request Court Support
             </Button>
           </div>
         </div>

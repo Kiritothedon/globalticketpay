@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Shield, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { SupabaseService } from "@/lib/supabaseService";
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -140,6 +141,20 @@ export default function AuthPage() {
       if (data.user) {
         console.log("Signup successful, user:", data.user);
         console.log("Email confirmed:", data.user.email_confirmed_at);
+
+        // Create user in users table
+        try {
+          await SupabaseService.createUser(
+            data.user.id,
+            data.user.email || '',
+            firstName,
+            lastName
+          );
+          console.log("User created in users table");
+        } catch (userError) {
+          console.error("Error creating user in users table:", userError);
+          // Don't fail the signup if user creation fails
+        }
 
         // Since email confirmation is disabled, always navigate to dashboard
         console.log("Signup successful, navigating to dashboard");

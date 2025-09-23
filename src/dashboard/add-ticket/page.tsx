@@ -222,6 +222,53 @@ export default function AddTicketPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Image Upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Ticket Image (Optional)</CardTitle>
+                <CardDescription>
+                  Upload a photo of your ticket for reference
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      {imagePreview ? (
+                        <div className="space-y-2">
+                          <img
+                            src={imagePreview}
+                            alt="Ticket preview"
+                            className="mx-auto h-32 w-auto rounded-lg object-cover"
+                          />
+                          <p className="text-sm text-gray-600">
+                            Click to change image
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Camera className="w-12 h-12 text-gray-400 mx-auto" />
+                          <p className="text-sm text-gray-600">
+                            Click to upload ticket image
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, or PDF up to 10MB
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Basic Ticket Information */}
             <Card>
               <CardHeader>
@@ -576,53 +623,6 @@ export default function AddTicketPage() {
                       }
                       placeholder="e.g., 12345"
                     />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Image Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Ticket Image (Optional)</CardTitle>
-                <CardDescription>
-                  Upload a photo of your ticket for reference
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      {imagePreview ? (
-                        <div className="space-y-2">
-                          <img
-                            src={imagePreview}
-                            alt="Ticket preview"
-                            className="mx-auto h-32 w-auto rounded-lg object-cover"
-                          />
-                          <p className="text-sm text-gray-600">
-                            Click to change image
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Camera className="w-12 h-12 text-gray-400 mx-auto" />
-                          <p className="text-sm text-gray-600">
-                            Click to upload ticket image
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            PNG, JPG, or PDF up to 10MB
-                          </p>
-                        </div>
-                      )}
-                    </label>
                   </div>
                 </div>
               </CardContent>
