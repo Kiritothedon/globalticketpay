@@ -25,7 +25,6 @@ export default function AuthPage() {
     const password = formData.get("signin-password") as string;
 
     try {
-      console.log("Attempting signin with:", { email, password: "***" });
 
       // Clear any cached session first
       await supabase.auth.signOut();
@@ -56,8 +55,6 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        console.log("Signin successful, user:", data.user);
-        console.log("Session:", data.session);
         navigate("/dashboard");
       }
     } catch (err) {
@@ -80,14 +77,6 @@ export default function AuthPage() {
     const password = formData.get("signup-password") as string;
     const confirmPassword = formData.get("signup-confirm") as string;
 
-    // Debug: Log the extracted values
-    console.log("Form data extracted:", {
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-    });
 
     // Validate required fields
     if (!email || !password) {
@@ -128,7 +117,6 @@ export default function AuthPage() {
           },
         },
       };
-      console.log("Sending to supabase.auth.signUp:", signupData);
 
       const { data, error: authError } = await supabase.auth.signUp(signupData);
 
@@ -139,8 +127,6 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        console.log("Signup successful, user:", data.user);
-        console.log("Email confirmed:", data.user.email_confirmed_at);
 
         // Create user in users table
         try {
@@ -150,14 +136,12 @@ export default function AuthPage() {
             firstName,
             lastName
           );
-          console.log("User created in users table");
         } catch (userError) {
           console.error("Error creating user in users table:", userError);
           // Don't fail the signup if user creation fails
         }
 
         // Since email confirmation is disabled, always navigate to dashboard
-        console.log("Signup successful, navigating to dashboard");
         setTimeout(() => {
           navigate("/dashboard");
         }, 1000);
@@ -174,7 +158,6 @@ export default function AuthPage() {
     try {
       await supabase.auth.signOut();
       setError("");
-      console.log("Auth state cleared");
     } catch (err) {
       console.error("Error clearing auth:", err);
     }

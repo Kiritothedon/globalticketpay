@@ -9,12 +9,9 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   const handleCheckTickets = () => {
-    console.log("handleCheckTickets - user:", user?.email);
     if (user) {
-      console.log("Navigating to dashboard");
       navigate("/dashboard");
     } else {
-      console.log("Navigating to auth");
       navigate("/auth");
     }
   };
@@ -29,14 +26,13 @@ export default function LandingPage() {
       <div className="bg-blue-600 text-white py-3 px-4">
         <div className="container mx-auto text-center">
           <p className="text-sm px-4">
-            {user 
+            {user
               ? "🚀 Welcome to Beta! You're part of our early users. Thank you for joining us!"
-              : "🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates."
-            }
+              : "🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates."}
           </p>
         </div>
       </div>
-      
+
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
@@ -79,14 +75,24 @@ export default function LandingPage() {
               <span>50,000+ tickets paid</span>
             </div>
           </div>
-          
+
           {/* Beta Version Indicator */}
           <div className="mt-6 flex justify-center">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span>Beta v0.1</span>
               <span className="text-green-600">•</span>
-              <span>{new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+              <span>
+                {new Date().toLocaleDateString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                })}{" "}
+                {new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </span>
             </div>
           </div>
         </div>
@@ -257,7 +263,7 @@ export default function LandingPage() {
               size="lg"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 bg-transparent"
-              onClick={() => window.open('#courts', '_self')}
+              onClick={() => window.open("#courts", "_self")}
             >
               View Supported Courts
             </Button>
@@ -273,7 +279,8 @@ export default function LandingPage() {
               Supported Courts
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We work with courts across the United States to make ticket payments easier
+              We work with courts across the United States to make ticket
+              payments easier
             </p>
           </div>
 
@@ -284,23 +291,35 @@ export default function LandingPage() {
             </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">California</h3>
-              <p className="text-sm text-muted-foreground">Major metropolitan areas</p>
+              <p className="text-sm text-muted-foreground">
+                Major metropolitan areas
+              </p>
             </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">Texas</h3>
-              <p className="text-sm text-muted-foreground">Harris, Dallas, Tarrant counties</p>
+              <p className="text-sm text-muted-foreground">
+                Harris, Dallas, Tarrant counties
+              </p>
             </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">Florida</h3>
-              <p className="text-sm text-muted-foreground">Miami-Dade, Broward, Orange counties</p>
+              <p className="text-sm text-muted-foreground">
+                Miami-Dade, Broward, Orange counties
+              </p>
             </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">Illinois</h3>
-              <p className="text-sm text-muted-foreground">Cook County and surrounding areas</p>
+              <p className="text-sm text-muted-foreground">
+                Cook County and surrounding areas
+              </p>
             </div>
             <div className="text-center p-6 bg-background rounded-lg border">
-              <h3 className="font-semibold text-foreground mb-2">More Coming Soon</h3>
-              <p className="text-sm text-muted-foreground">We're expanding nationwide</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                More Coming Soon
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                We're expanding nationwide
+              </p>
             </div>
           </div>
 
@@ -308,9 +327,7 @@ export default function LandingPage() {
             <p className="text-muted-foreground mb-4">
               Don't see your court? Contact us to request support for your area.
             </p>
-            <Button variant="outline">
-              Request Court Support
-            </Button>
+            <Button variant="outline">Request Court Support</Button>
           </div>
         </div>
       </section>

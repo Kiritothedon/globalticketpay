@@ -20,8 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("Initial session check:", session, "error:", error);
+        const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -30,14 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     };
-    
+
     getInitialSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change:", event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -58,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // If user doesn't exist, create them
             if (!existingUser && !checkError) {
-              console.log("Creating new user profile for:", user.email);
               const { error: userError } = await supabase.from("users").insert({
                 id: user.id,
                 email: user.email || "",
@@ -69,10 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (userError) {
                 console.error("Error creating user profile:", userError);
               } else {
-                console.log("User profile created successfully");
               }
             } else if (existingUser) {
-              console.log("User profile already exists");
             }
           } catch (error) {
             console.error("Error handling new user:", error);

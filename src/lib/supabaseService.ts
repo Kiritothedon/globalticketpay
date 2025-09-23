@@ -108,7 +108,6 @@ export class SupabaseService {
         return false;
       }
 
-      console.log("Supabase connection successful");
       return true;
     } catch (error) {
       console.error("Supabase connection test error:", error);
