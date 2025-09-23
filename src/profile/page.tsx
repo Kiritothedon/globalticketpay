@@ -69,13 +69,13 @@ export default function ProfilePage() {
         // If user doesn't exist in users table, create a basic profile from auth data
         const basicProfile: UserProfile = {
           id: user.id,
-          email: user.email || '',
-          first_name: user.user_metadata?.first_name || '',
-          last_name: user.user_metadata?.last_name || '',
+          email: user.email || "",
+          first_name: user.user_metadata?.first_name || "",
+          last_name: user.user_metadata?.last_name || "",
           created_at: user.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
-        
+
         setProfile(basicProfile);
         setFormData(basicProfile);
         return;
@@ -88,13 +88,13 @@ export default function ProfilePage() {
       // Fallback to auth user data
       const basicProfile: UserProfile = {
         id: user.id,
-        email: user.email || '',
-        first_name: user.user_metadata?.first_name || '',
-        last_name: user.user_metadata?.last_name || '',
+        email: user.email || "",
+        first_name: user.user_metadata?.first_name || "",
+        last_name: user.user_metadata?.last_name || "",
         created_at: user.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      
+
       setProfile(basicProfile);
       setFormData(basicProfile);
     } finally {

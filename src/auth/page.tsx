@@ -146,7 +146,7 @@ export default function AuthPage() {
         try {
           await SupabaseService.createUser(
             data.user.id,
-            data.user.email || '',
+            data.user.email || "",
             firstName,
             lastName
           );

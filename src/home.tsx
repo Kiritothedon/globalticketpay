@@ -9,9 +9,12 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   const handleCheckTickets = () => {
+    console.log("handleCheckTickets - user:", user?.email);
     if (user) {
+      console.log("Navigating to dashboard");
       navigate("/dashboard");
     } else {
+      console.log("Navigating to auth");
       navigate("/auth");
     }
   };
@@ -23,15 +26,16 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Beta Signup Banner */}
-      {!user && (
-        <div className="bg-blue-600 text-white py-3 px-4">
-          <div className="container mx-auto text-center">
-            <p className="text-sm px-4">
-              🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates.
-            </p>
-          </div>
+      <div className="bg-blue-600 text-white py-3 px-4">
+        <div className="container mx-auto text-center">
+          <p className="text-sm px-4">
+            {user 
+              ? "🚀 Welcome to Beta! You're part of our early users. Thank you for joining us!"
+              : "🚀 This site is currently in Beta. Sign up now to be part of our early users and receive updates."
+            }
+          </p>
         </div>
-      )}
+      </div>
       
       {/* Hero Section */}
       <section className="py-20 px-4">
