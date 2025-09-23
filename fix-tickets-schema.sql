@@ -13,11 +13,8 @@ ADD COLUMN IF NOT EXISTS date_of_birth date,
 ADD COLUMN IF NOT EXISTS license_expiration_date date,
 ADD COLUMN IF NOT EXISTS vehicle_color text,
 ADD COLUMN IF NOT EXISTS officer_badge_number text,
-ADD COLUMN IF NOT EXISTS payment_reference text;
-
--- Update the updated_at column to have a default value
-ALTER TABLE public.tickets 
-ALTER COLUMN updated_at SET DEFAULT now();
+ADD COLUMN IF NOT EXISTS payment_reference text,
+ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 
 -- Create a trigger to automatically update the updated_at column
 CREATE OR REPLACE FUNCTION update_tickets_updated_at_column()
