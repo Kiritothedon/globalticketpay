@@ -202,17 +202,13 @@ export class SupabaseService {
   }
 
   // Upload ticket image
-  static async uploadTicketImage(
-    file: File,
-    ticketId: string,
-    userId: string
-  ) {
+  static async uploadTicketImage(file: File, ticketId: string, userId: string) {
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${userId}/${ticketId}.${fileExt}`;
-      
+
       const { data, error } = await supabase.storage
-        .from('ticket-images')
+        .from("ticket-images")
         .upload(fileName, file);
 
       if (error) {
@@ -222,12 +218,12 @@ export class SupabaseService {
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('ticket-images')
+        .from("ticket-images")
         .getPublicUrl(fileName);
 
       return {
         path: data.path,
-        url: urlData.publicUrl
+        url: urlData.publicUrl,
       };
     } catch (error) {
       console.error("Error in uploadTicketImage:", error);
@@ -239,7 +235,7 @@ export class SupabaseService {
   static async deleteTicketImage(imagePath: string) {
     try {
       const { error } = await supabase.storage
-        .from('ticket-images')
+        .from("ticket-images")
         .remove([imagePath]);
 
       if (error) {

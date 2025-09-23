@@ -1,26 +1,31 @@
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
+);
 
 export { stripePromise };
 
 // Stripe configuration
 export const STRIPE_CONFIG = {
   // You can add more configuration here as needed
-  currency: 'usd',
-  mode: 'payment' as const,
+  currency: "usd",
+  mode: "payment" as const,
 };
 
 // Payment intent creation (this would typically be done on your backend)
-export const createPaymentIntent = async (amount: number, _ticketId: string) => {
+export const createPaymentIntent = async (
+  amount: number,
+  _ticketId: string
+) => {
   // This is a placeholder - in a real app, you'd call your backend API
   // which would create a payment intent with Stripe
-  
+
   // For now, return a mock payment intent
   return {
-    clientSecret: 'mock_client_secret',
+    clientSecret: "mock_client_secret",
     amount: amount * 100, // Stripe expects amounts in cents
-    currency: 'usd',
+    currency: "usd",
   };
 };

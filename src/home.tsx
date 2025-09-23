@@ -3,10 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CreditCard, CheckCircle, Lock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { CourtSupportModal } from "@/components/CourtSupportModal";
+import { useState } from "react";
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isCourtSupportModalOpen, setIsCourtSupportModalOpen] = useState(false);
 
   const handleCheckTickets = () => {
     if (user) {
@@ -295,12 +298,12 @@ export default function LandingPage() {
                 Major metropolitan areas
               </p>
             </div>
-            <div className="text-center p-6 bg-background rounded-lg border">
-              <h3 className="font-semibold text-foreground mb-2">Texas</h3>
-              <p className="text-sm text-muted-foreground">
-                Harris, Dallas, Tarrant counties
-              </p>
-            </div>
+              <div className="text-center p-6 bg-background rounded-lg border">
+                <h3 className="font-semibold text-foreground mb-2">Texas</h3>
+                <p className="text-sm text-muted-foreground">
+                  Harris, Dallas, Tarrant counties, San Antonio
+                </p>
+              </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">Florida</h3>
               <p className="text-sm text-muted-foreground">
@@ -327,7 +330,12 @@ export default function LandingPage() {
             <p className="text-muted-foreground mb-4">
               Don't see your court? Contact us to request support for your area.
             </p>
-            <Button variant="outline">Request Court Support</Button>
+             <Button 
+               variant="outline" 
+               onClick={() => setIsCourtSupportModalOpen(true)}
+             >
+               Request Court Support
+             </Button>
           </div>
         </div>
       </section>
@@ -447,6 +455,12 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Court Support Modal */}
+      <CourtSupportModal
+        isOpen={isCourtSupportModalOpen}
+        onClose={() => setIsCourtSupportModalOpen(false)}
+      />
     </div>
   );
 }

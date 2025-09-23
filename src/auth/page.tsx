@@ -25,7 +25,6 @@ export default function AuthPage() {
     const password = formData.get("signin-password") as string;
 
     try {
-
       // Clear any cached session first
       await supabase.auth.signOut();
 
@@ -77,7 +76,6 @@ export default function AuthPage() {
     const password = formData.get("signup-password") as string;
     const confirmPassword = formData.get("signup-confirm") as string;
 
-
     // Validate required fields
     if (!email || !password) {
       setError("Email and password are required");
@@ -127,7 +125,6 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-
         // Create user in users table
         try {
           await SupabaseService.createUser(
