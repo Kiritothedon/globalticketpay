@@ -1,10 +1,21 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Mail, Building } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -26,7 +37,7 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,18 +46,16 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
 
     try {
       // Store the request in the database
-      const { error } = await supabase
-        .from("court_support_requests")
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          state: formData.state,
-          city: formData.city,
-          court_name: formData.courtName,
-          message: formData.message,
-          status: "pending",
-          created_at: new Date().toISOString(),
-        });
+      const { error } = await supabase.from("court_support_requests").insert({
+        name: formData.name,
+        email: formData.email,
+        state: formData.state,
+        city: formData.city,
+        court_name: formData.courtName,
+        message: formData.message,
+        status: "pending",
+        created_at: new Date().toISOString(),
+      });
 
       if (error) {
         console.error("Error submitting court support request:", error);
@@ -56,7 +65,7 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
       // Send confirmation email (this would typically be done via a backend service)
       // For now, we'll just show success message
       setIsSubmitted(true);
-      
+
       // Reset form after 3 seconds and close modal
       setTimeout(() => {
         setIsSubmitted(false);
@@ -70,7 +79,6 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
         });
         onClose();
       }, 3000);
-
     } catch (error) {
       console.error("Error submitting request:", error);
     } finally {
@@ -90,7 +98,8 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
               Request Submitted!
             </h3>
             <p className="text-muted-foreground">
-              Thank you for your request. We'll review it and get back to you soon.
+              Thank you for your request. We'll review it and get back to you
+              soon.
             </p>
             <p className="text-sm text-muted-foreground mt-2">
               A confirmation email has been sent to {formData.email}
@@ -110,7 +119,7 @@ export function CourtSupportModal({ isOpen, onClose }: CourtSupportModalProps) {
             Request Court Support
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

@@ -59,7 +59,7 @@ export default function LandingPage() {
               size="lg"
               variant="outline"
               className="border-gray-300 px-8 py-3 bg-transparent"
-              onClick={handleSignUp}
+              onClick={user ? handleCheckTickets : handleSignUp}
             >
               {user ? "Dashboard" : "Sign Up / Log In"}
             </Button>
@@ -258,7 +258,7 @@ export default function LandingPage() {
               size="lg"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 bg-transparent"
-              onClick={handleSignUp}
+              onClick={user ? handleCheckTickets : handleSignUp}
             >
               {user ? "Dashboard" : "Create Account"}
             </Button>
