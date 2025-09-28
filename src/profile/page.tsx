@@ -61,34 +61,7 @@ export default function ProfilePage() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error loading profile:", error);
-        // If user doesn't exist in users table, create a basic profile from auth data
-        const basicProfile: UserProfile = {
-          id: user.id,
-          email: user.email || "",
-          first_name: user.user_metadata?.first_name || "",
-          last_name: user.user_metadata?.last_name || "",
-          created_at: user.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        setProfile(basicProfile);
-        setFormData(basicProfile);
-        return;
-      }
-
-      setProfile(data);
-      setFormData(data);
-    } catch (error) {
-      console.error("Error loading profile:", error);
-      // Fallback to auth user data
+      // Create profile directly from auth.users data
       const basicProfile: UserProfile = {
         id: user.id,
         email: user.email || "",
@@ -96,10 +69,19 @@ export default function ProfilePage() {
         last_name: user.user_metadata?.last_name || "",
         created_at: user.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        zip_code: "",
+        driver_license: "",
+        driver_license_state: "",
       };
 
       setProfile(basicProfile);
       setFormData(basicProfile);
+    } catch (error) {
+      console.error("Error loading profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -110,13 +92,13 @@ export default function ProfilePage() {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("users")
-        .update({
-          ...formData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+      // Update user metadata in auth.users
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+        }
+      });
 
       if (error) {
         console.error("Error updating profile:", error);
