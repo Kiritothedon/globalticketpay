@@ -70,8 +70,8 @@ async function scrapeShavanoPark(dlNumber, state) {
     return a & a;
   }, 0);
 
-  // 30% chance of finding tickets
-  if (Math.abs(dlHash) % 10 < 3) {
+  // 80% chance of finding tickets (increased for testing)
+  if (Math.abs(dlHash) % 10 < 8) {
     const ticketTypes = [
       { violation: "Speeding", amount: 150 },
       { violation: "Red Light Violation", amount: 200 },
@@ -119,8 +119,8 @@ async function scrapeCiboloCounty(dlNumber, state, dob) {
     return a & a;
   }, 0);
 
-  // 40% chance of finding tickets
-  if (Math.abs(dlHash + dobHash) % 10 < 4) {
+  // 80% chance of finding tickets (increased for testing)
+  if (Math.abs(dlHash + dobHash) % 10 < 8) {
     const ticketCount = (Math.abs(dlHash) % 3) + 1; // 1-3 tickets
 
     for (let i = 0; i < ticketCount; i++) {
