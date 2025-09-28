@@ -9,11 +9,23 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Eye, Trash2, CreditCard } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Eye,
+  Trash2,
+  CreditCard,
+  ShoppingCart,
+  CheckCircle,
+  Search,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Ticket } from "@/lib/supabase";
 import { SupabaseService } from "@/lib/supabaseService";
 import { PaymentModal } from "@/components/PaymentModal";
+import { TicketCart } from "@/components/TicketCart";
+import { StripeCheckout } from "@/components/StripeCheckout";
+import { TicketLookup } from "@/components/TicketLookup";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -24,6 +36,11 @@ export default function DashboardPage() {
     isOpen: boolean;
     ticket: Ticket | null;
   }>({ isOpen: false, ticket: null });
+  const [showCart, setShowCart] = useState(false);
+  const [checkoutTickets, setCheckoutTickets] = useState<Ticket[]>([]);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [showLookup, setShowLookup] = useState(false);
 
   // Load user tickets
   useEffect(() => {
@@ -69,6 +86,97 @@ export default function DashboardPage() {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  const handleTicketsUpdate = (updatedTickets: Ticket[]) => {
+    setTickets(updatedTickets);
+  };
+
+  const handleCheckout = (selectedTickets: Ticket[]) => {
+    setCheckoutTickets(selectedTickets);
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutPaymentSuccess = (_paymentIntentId: string) => {
+    setPaymentSuccess(true);
+    setShowCheckout(false);
+    setShowCart(false);
+    // Reload tickets to show updated status
+    loadTickets();
+  };
+
+  const handleCheckoutCancel = () => {
+    setShowCheckout(false);
+  };
+
+  const handleLookupTicketsFound = async (foundTickets: Ticket[]) => {
+    if (!user) return;
+
+    try {
+      // Add user_id to found tickets
+      const ticketsWithUserId = foundTickets.map((ticket) => ({
+        ...ticket,
+        user_id: user.id,
+      }));
+
+      // Save tickets to database
+      for (const ticket of ticketsWithUserId) {
+        await SupabaseService.createTicket({
+          user_id: ticket.user_id,
+          ticket_number: ticket.ticket_number,
+          violation_date: ticket.violation_date,
+          due_date: ticket.due_date,
+          amount: ticket.amount,
+          state: ticket.state,
+          county: ticket.county,
+          court: ticket.court,
+          violation: ticket.violation,
+          violation_code: ticket.violation_code,
+          violation_description: ticket.violation_description,
+          driver_license_number: ticket.driver_license_number,
+          driver_license_state: ticket.driver_license_state,
+          date_of_birth: ticket.date_of_birth,
+          license_expiration_date: ticket.license_expiration_date,
+          vehicle_plate: ticket.vehicle_plate,
+          vehicle_make: ticket.vehicle_make,
+          vehicle_model: ticket.vehicle_model,
+          vehicle_year: ticket.vehicle_year,
+          vehicle_color: ticket.vehicle_color,
+          officer_name: ticket.officer_name,
+          officer_badge_number: ticket.officer_badge_number,
+          status: ticket.status,
+          notes: ticket.notes,
+          court_date: ticket.court_date,
+          court_location: ticket.court_location,
+          payment_date: ticket.payment_date,
+          payment_method: ticket.payment_method,
+          payment_reference: ticket.payment_reference,
+          ticket_image_url: ticket.ticket_image_url,
+        });
+      }
+
+      // Reload tickets
+      await loadTickets();
+      setShowLookup(false);
+    } catch (error) {
+      console.error("Error adding found tickets:", error);
+      setError("Failed to add found tickets. Please try again.");
+    }
+  };
+
+  const loadTickets = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const userTickets = await SupabaseService.getUserTickets(user.id);
+      setTickets(userTickets);
+    } catch (err) {
+      console.error("Error loading tickets:", err);
+      setError("Failed to load tickets");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -161,6 +269,22 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowLookup(!showLookup)}
+                className="w-full sm:w-auto"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                {showLookup ? "Hide Lookup" : "Lookup Tickets"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowCart(!showCart)}
+                className="w-full sm:w-auto"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                {showCart ? "Hide Cart" : "View Cart"}
+              </Button>
               <Link to="/dashboard/add-ticket">
                 <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
@@ -334,7 +458,8 @@ export default function DashboardPage() {
                           </td>
                           <td className="py-3 sm:py-4 px-2 sm:px-4">
                             <div className="flex items-center space-x-1 sm:space-x-2">
-                              {ticket.status === "pending" || ticket.status === "overdue" ? (
+                              {ticket.status === "pending" ||
+                              ticket.status === "overdue" ? (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -381,6 +506,80 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </main>
+
+        {/* Lookup Section */}
+        {showLookup && (
+          <div className="p-4 sm:p-6 max-w-7xl mx-auto w-full">
+            <TicketLookup
+              onTicketsFound={handleLookupTicketsFound}
+              onClose={() => setShowLookup(false)}
+            />
+          </div>
+        )}
+
+        {/* Cart Section */}
+        {showCart && (
+          <div className="p-4 sm:p-6 max-w-7xl mx-auto w-full">
+            <TicketCart
+              tickets={tickets}
+              onTicketsUpdate={handleTicketsUpdate}
+              onCheckout={handleCheckout}
+            />
+          </div>
+        )}
+
+        {/* Payment Success Message */}
+        {paymentSuccess && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-md mx-4">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    Payment Successful!
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    Your tickets have been marked as paid and will be processed.
+                  </p>
+                  <Button
+                    onClick={() => setPaymentSuccess(false)}
+                    className="w-full"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Checkout Modal */}
+        {showCheckout && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <StripeCheckout
+                tickets={checkoutTickets}
+                total={
+                  checkoutTickets.reduce(
+                    (sum, ticket) => sum + ticket.amount,
+                    0
+                  ) +
+                  Math.max(
+                    checkoutTickets.reduce(
+                      (sum, ticket) => sum + ticket.amount,
+                      0
+                    ) * 0.1,
+                    10
+                  )
+                }
+                onSuccess={handleCheckoutPaymentSuccess}
+                onCancel={handleCheckoutCancel}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Payment Modal */}

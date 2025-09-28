@@ -68,14 +68,37 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 npm run dev
 ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+7. Open [http://localhost:3004](http://localhost:3004) in your browser.
+
+## Port Configuration
+
+This project is configured to run on **port 3004** to avoid conflicts with other projects.
+
+- **This project**: http://localhost:3004
+- **Other projects**: Can use ports 3001, 3002, 3003, etc.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server on port 3004
+- `npm run dev:3001` - Start on port 3001
+- `npm run dev:3002` - Start on port 3002
+- `npm run dev:3003` - Start on port 3003
 - `npm run build` - Build for production
-- `npm run preview` - Preview production build
+- `npm run preview` - Preview production build on port 3004
 - `npm run lint` - Run ESLint
+
+### Port Management
+
+```bash
+# Check port status
+./scripts/port-manager.sh check
+
+# Clear a specific port
+./scripts/port-manager.sh clear 3001
+
+# Start on specific port
+./scripts/port-manager.sh start 3004
+```
 
 ## Project Structure
 

@@ -80,14 +80,14 @@ export default function LandingPage() {
           </div>
 
           {/* Beta Version Indicator */}
-                 <div className="mt-6 flex justify-center">
-                   <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
-                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                     <span>Beta v2.0</span>
-                     <span className="text-green-600">•</span>
-                     <span>12/19 19:50</span>
-                   </div>
-                 </div>
+          <div className="mt-6 flex justify-center">
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Beta v2.0</span>
+              <span className="text-green-600">•</span>
+              <span>12/19 19:50</span>
+            </div>
+          </div>
         </div>
       </section>
 

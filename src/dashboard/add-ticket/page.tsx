@@ -19,9 +19,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Camera } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Camera,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  X,
+} from "lucide-react";
 import { SupabaseService } from "@/lib/supabaseService";
 import { Ticket } from "@/lib/supabase";
+import { EnhancedOCRService, ParsedTicketData } from "@/lib/enhancedOcrService";
+import { UnifiedTicketData } from "@/lib/ticketIntakeService";
+import { EnhancedTicketIntake } from "@/components/EnhancedTicketIntake";
 
 export default function AddTicketPage() {
   const { user } = useAuth();
@@ -31,6 +43,15 @@ export default function AddTicketPage() {
   const [success, setSuccess] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  const [ocrResult, setOcrResult] = useState<ParsedTicketData | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [showEnhancedIntake, setShowEnhancedIntake] = useState(false);
+  const [scrapeParams] = useState({
+    dlNumber: "",
+    state: "",
+    dob: "",
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -80,15 +101,128 @@ export default function AddTicketPage() {
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedImage(file);
+      setOcrError(null);
+      setOcrResult(null);
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Process OCR
+      await processImageWithOCR(file);
+    }
+  };
+
+  const processImageWithOCR = async (file: File) => {
+    setIsProcessingOCR(true);
+    setOcrError(null);
+
+    try {
+      const result = await EnhancedOCRService.parseTicketImage(file);
+      setOcrResult(result);
+
+      // Auto-fill form with extracted data
+      if (result.citation_no)
+        setFormData((prev) => ({
+          ...prev,
+          ticket_number: result.citation_no!,
+        }));
+      if (result.court_name)
+        setFormData((prev) => ({ ...prev, court: result.court_name! }));
+      if (result.violation)
+        setFormData((prev) => ({ ...prev, violation: result.violation! }));
+      if (result.due_date)
+        setFormData((prev) => ({ ...prev, due_date: result.due_date! }));
+      if (result.fine_amount)
+        setFormData((prev) => ({
+          ...prev,
+          amount: result.fine_amount!.toString(),
+        }));
+
+      // Validate the parsed data
+      const validation = EnhancedOCRService.validateParsedData(result);
+      if (!validation.isValid) {
+        setOcrError(
+          `Some fields couldn't be extracted automatically: ${validation.missingFields.join(
+            ", "
+          )}. Please fill them manually.`
+        );
+      }
+    } catch (error) {
+      console.error("OCR processing failed:", error);
+      setOcrError(
+        error instanceof Error ? error.message : "Failed to process image"
+      );
+    } finally {
+      setIsProcessingOCR(false);
+    }
+  };
+
+  const handleEnhancedTicketsFound = async (tickets: UnifiedTicketData[]) => {
+    if (!user) return;
+
+    try {
+      // Convert unified tickets to our ticket format and save them
+      for (const ticket of tickets) {
+        const ticketData: Omit<Ticket, "id" | "created_at" | "updated_at"> = {
+          user_id: user.id,
+          ticket_number: ticket.citation_no,
+          violation_date: new Date().toISOString().split("T")[0], // Default to today
+          due_date:
+            ticket.due_date ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+          amount: ticket.fine_amount,
+          state: scrapeParams?.state || "TX", // Default to TX if not specified
+          county: ticket.court_name?.includes("Shavano")
+            ? "Shavano Park"
+            : ticket.court_name?.includes("Cibolo")
+            ? "Cibolo"
+            : "Unknown",
+          court: ticket.court_name || "Unknown Court",
+          violation: ticket.violation || "Unknown Violation",
+          violation_code: "",
+          violation_description: ticket.violation || "",
+          driver_license_number: ticket.dl_no,
+          driver_license_state: scrapeParams?.state || "TX",
+          date_of_birth: ticket.dob,
+          license_expiration_date: "",
+          vehicle_plate: "",
+          vehicle_make: "",
+          vehicle_model: "",
+          vehicle_year: 0,
+          vehicle_color: "",
+          officer_name: "",
+          officer_badge_number: "",
+          status: "pending",
+          notes: `Found via ${ticket.source} (${Math.round(
+            ticket.confidence * 100
+          )}% confidence)`,
+          court_date: ticket.court_date,
+          court_location: ticket.court_address,
+          payment_date: undefined,
+          payment_method: undefined,
+          payment_reference: undefined,
+          ticket_image_url: undefined,
+        };
+
+        await SupabaseService.createTicket(ticketData);
+      }
+
+      setSuccess(true);
+      setShowEnhancedIntake(false);
+    } catch (error) {
+      console.error("Error adding enhanced tickets:", error);
+      setError("Failed to add tickets. Please try again.");
     }
   };
 
@@ -191,24 +325,34 @@ export default function AddTicketPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-            className="self-start"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Add New Ticket
-            </h1>
-            <p className="text-muted-foreground">
-              Enter your traffic ticket information
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+              className="self-start"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Add New Ticket
+              </h1>
+              <p className="text-muted-foreground">
+                Enter your traffic ticket information
+              </p>
+            </div>
           </div>
+          <Button
+            onClick={() => setShowEnhancedIntake(true)}
+            variant="outline"
+            className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Enhanced Search
+          </Button>
         </div>
       </header>
 
@@ -222,12 +366,13 @@ export default function AddTicketPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Image Upload */}
+            {/* Image Upload with OCR */}
             <Card>
               <CardHeader>
-                <CardTitle>Ticket Image (Optional)</CardTitle>
+                <CardTitle>Submit Image for Auto-Fill</CardTitle>
                 <CardDescription>
-                  Upload a photo of your ticket for reference
+                  Upload a photo of your ticket to automatically extract key
+                  information
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -239,9 +384,25 @@ export default function AddTicketPage() {
                       onChange={handleImageUpload}
                       className="hidden"
                       id="image-upload"
+                      disabled={isProcessingOCR}
                     />
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      {imagePreview ? (
+                    <label
+                      htmlFor="image-upload"
+                      className={`cursor-pointer ${
+                        isProcessingOCR ? "opacity-50" : ""
+                      }`}
+                    >
+                      {isProcessingOCR ? (
+                        <div className="space-y-2">
+                          <Loader2 className="w-12 h-12 text-blue-500 mx-auto animate-spin" />
+                          <p className="text-sm text-gray-600">
+                            Processing image with OCR...
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            This may take a few moments
+                          </p>
+                        </div>
+                      ) : imagePreview ? (
                         <div className="space-y-2">
                           <img
                             src={imagePreview}
@@ -265,6 +426,41 @@ export default function AddTicketPage() {
                       )}
                     </label>
                   </div>
+
+                  {/* OCR Results */}
+                  {ocrResult && (
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-green-800 dark:text-green-200">
+                            OCR Processing Complete
+                          </h4>
+                          <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                            Confidence: {Math.round(ocrResult.confidence)}% •
+                            Extracted fields have been auto-filled below
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* OCR Error */}
+                  {ocrError && (
+                    <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                            OCR Processing Issue
+                          </h4>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                            {ocrError}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -696,6 +892,32 @@ export default function AddTicketPage() {
           </form>
         </div>
       </main>
+
+      {/* Enhanced Ticket Intake Modal */}
+      {showEnhancedIntake && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background rounded-lg">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Enhanced Ticket Search
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEnhancedIntake(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <EnhancedTicketIntake
+                onTicketsFound={handleEnhancedTicketsFound}
+                onClose={() => setShowEnhancedIntake(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

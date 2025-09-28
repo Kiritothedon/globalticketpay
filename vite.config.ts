@@ -25,11 +25,13 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 3004,
     host: true,
+    strictPort: true, // Fail if port is already in use
   },
   preview: {
-    port: 3000,
+    port: 3004,
     host: true,
+    strictPort: true,
   },
 });
