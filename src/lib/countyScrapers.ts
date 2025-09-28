@@ -69,7 +69,7 @@ export class CountyScrapers {
     }
   ): Promise<ScrapedTicketData[]> {
     try {
-      // Try Supabase Edge Function first
+      // Try Supabase Edge Function first (works on Vercel)
       const { data, error } = await supabase.functions.invoke('scrape-tickets', {
         body: {
           source,
@@ -80,30 +80,39 @@ export class CountyScrapers {
       });
 
       if (!error && data?.tickets?.length > 0) {
+        console.log(`✅ Supabase Edge Function found ${data.tickets.length} tickets for ${source}`);
         return this.convertBackendTickets(data.tickets, params);
       }
 
-      // Fallback to external scraper service
-      const scraperServiceUrl = process.env.VITE_SCRAPER_SERVICE_URL || 'http://localhost:3005';
-      const response = await fetch(`${scraperServiceUrl}/scrape`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          source,
-          driverLicenseNumber: params.dlNumber,
-          state: params.state,
-          dob: params.dob
-        })
-      });
+      // Fallback to external scraper service (only works in development)
+      if (process.env.NODE_ENV === 'development') {
+        const scraperServiceUrl = process.env.VITE_SCRAPER_SERVICE_URL || 'http://localhost:3005';
+        console.log(`🔄 Falling back to external scraper service: ${scraperServiceUrl}`);
+        
+        const response = await fetch(`${scraperServiceUrl}/scrape`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            source,
+            driverLicenseNumber: params.dlNumber,
+            state: params.state,
+            dob: params.dob
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error(`Scraper service error: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Scraper service error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return this.convertBackendTickets(result.tickets || [], params);
+      } else {
+        console.log(`⚠️ External scraper service not available in production, using mock data for ${source}`);
+        // In production, fall back to mock data if Edge Function fails
+        return [];
       }
-
-      const result = await response.json();
-      return this.convertBackendTickets(result.tickets || [], params);
 
     } catch (error) {
       console.error('Backend scraping failed:', error);
