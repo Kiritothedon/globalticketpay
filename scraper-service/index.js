@@ -57,19 +57,19 @@ app.post("/scrape", async (req, res) => {
 async function scrapeShavanoPark(dlNumber, state) {
   // For now, return realistic mock data based on the input
   console.log(`Scraping Shavano Park for DL: ${dlNumber}, State: ${state}`);
-  
+
   // Simulate some processing time
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   // Return realistic mock data that varies based on input
   const tickets = [];
-  
+
   // Generate ticket based on DL number to make it seem real
-  const dlHash = dlNumber.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
+  const dlHash = dlNumber.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
+
   // 30% chance of finding tickets
   if (Math.abs(dlHash) % 10 < 3) {
     const ticketTypes = [
@@ -78,49 +78,51 @@ async function scrapeShavanoPark(dlNumber, state) {
       { violation: "Stop Sign Violation", amount: 125 },
       { violation: "Parking Violation", amount: 75 },
     ];
-    
+
     const ticketType = ticketTypes[Math.abs(dlHash) % ticketTypes.length];
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 30) + 15);
-    
+
     tickets.push({
-      citationNo: `SP-${Math.abs(dlHash).toString().padStart(6, '0')}`,
+      citationNo: `SP-${Math.abs(dlHash).toString().padStart(6, "0")}`,
       violation: ticketType.violation,
       fineAmount: ticketType.amount,
       dueDate: dueDate.toISOString().split("T")[0],
       courtName: "Shavano Park Municipal Court",
-      source: "shavano"
+      source: "shavano",
     });
   }
-  
+
   return tickets;
 }
 
 async function scrapeCiboloCounty(dlNumber, state, dob) {
   // For now, return realistic mock data based on the input
-  console.log(`Scraping Cibolo for DL: ${dlNumber}, State: ${state}, DOB: ${dob}`);
-  
+  console.log(
+    `Scraping Cibolo for DL: ${dlNumber}, State: ${state}, DOB: ${dob}`
+  );
+
   // Simulate some processing time
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
   // Return realistic mock data that varies based on input
   const tickets = [];
-  
+
   // Generate ticket based on DL number and DOB to make it seem real
-  const dlHash = dlNumber.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
+  const dlHash = dlNumber.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
-  const dobHash = dob.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
+
+  const dobHash = dob.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
+
   // 40% chance of finding tickets
   if (Math.abs(dlHash + dobHash) % 10 < 4) {
     const ticketCount = (Math.abs(dlHash) % 3) + 1; // 1-3 tickets
-    
+
     for (let i = 0; i < ticketCount; i++) {
       const ticketTypes = [
         { violation: "Speeding", amount: 150 },
@@ -129,22 +131,23 @@ async function scrapeCiboloCounty(dlNumber, state, dob) {
         { violation: "No Insurance", amount: 250 },
         { violation: "Cell Phone Use", amount: 200 },
       ];
-      
-      const ticketType = ticketTypes[(Math.abs(dlHash) + i) % ticketTypes.length];
+
+      const ticketType =
+        ticketTypes[(Math.abs(dlHash) + i) % ticketTypes.length];
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 30) + 15);
-      
+
       tickets.push({
-        citationNo: `C-${(Math.abs(dlHash) + i).toString().padStart(6, '0')}`,
+        citationNo: `C-${(Math.abs(dlHash) + i).toString().padStart(6, "0")}`,
         violation: ticketType.violation,
         fineAmount: ticketType.amount,
         dueDate: dueDate.toISOString().split("T")[0],
         courtName: "Cibolo Municipal Court",
-        source: "cibolo"
+        source: "cibolo",
       });
     }
   }
-  
+
   return tickets;
 }
 

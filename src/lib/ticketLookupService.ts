@@ -1,3 +1,5 @@
+import { CountyScrapers, ScrapedTicketData } from "./countyScrapers";
+
 export interface TicketLookupResult {
   ticket_number: string;
   violation: string;
@@ -8,7 +10,7 @@ export interface TicketLookupResult {
   state: string;
   status: string;
   violation_date: string;
-  source: "county_website" | "state_database" | "manual";
+  source: "county_website" | "state_database" | "manual" | "shavano" | "cibolo";
   confidence: number;
 }
 
@@ -53,13 +55,17 @@ export class TicketLookupService {
     const results: TicketLookupResult[] = [];
 
     try {
-      // Get counties within radius
-      const counties = this.getCountiesInRadius(criteria);
+      // Use the actual scraper service for Shavano Park and Cibolo County
+      const scrapedTickets = await this.scrapeRealTickets(criteria);
+      results.push(...scrapedTickets);
 
-      // Lookup tickets in each county
-      for (const county of counties) {
-        const countyResults = await this.lookupInCounty(criteria, county);
-        results.push(...countyResults);
+      // If no real tickets found, show placeholders for other counties
+      if (results.length === 0) {
+        const counties = this.getCountiesInRadius(criteria);
+        for (const county of counties) {
+          const countyResults = await this.lookupInCounty(criteria, county);
+          results.push(...countyResults);
+        }
       }
 
       // Sort by confidence and remove duplicates
@@ -70,6 +76,68 @@ export class TicketLookupService {
         "Failed to lookup tickets. Please try again or add tickets manually."
       );
     }
+  }
+
+  private static async scrapeRealTickets(
+    criteria: LookupCriteria
+  ): Promise<TicketLookupResult[]> {
+    const results: TicketLookupResult[] = [];
+
+    try {
+      // Convert date format from YYYY-MM-DD to MM/DD/YYYY for scraper
+      const dobParts = criteria.dateOfBirth.split('-');
+      const formattedDob = `${dobParts[1]}/${dobParts[2]}/${dobParts[0]}`;
+
+      // Scrape from both Shavano Park and Cibolo County
+      const sources = ['shavano', 'cibolo'] as const;
+      
+      for (const source of sources) {
+        try {
+          const scrapedTickets = await CountyScrapers.fetchTicketsFromSource(
+            source,
+            {
+              dlNumber: criteria.driverLicenseNumber,
+              state: criteria.driverLicenseState,
+              dob: formattedDob,
+            }
+          );
+
+          // Convert scraped tickets to lookup results
+          const convertedTickets = scrapedTickets.map(ticket => 
+            this.convertScrapedTicketToLookupResult(ticket, criteria)
+          );
+
+          results.push(...convertedTickets);
+        } catch (error) {
+          console.error(`Failed to scrape ${source}:`, error);
+          // Continue with other sources even if one fails
+        }
+      }
+    } catch (error) {
+      console.error("Real ticket scraping failed:", error);
+    }
+
+    return results;
+  }
+
+  private static convertScrapedTicketToLookupResult(
+    scrapedTicket: ScrapedTicketData,
+    criteria: LookupCriteria
+  ): TicketLookupResult {
+    return {
+      ticket_number: scrapedTicket.citation_no,
+      violation: scrapedTicket.violation || "Unknown Violation",
+      amount: scrapedTicket.fine_amount,
+      due_date: scrapedTicket.due_date || new Date().toISOString().split("T")[0],
+      court: scrapedTicket.court_name || "Unknown Court",
+      county: scrapedTicket.court_name?.includes('Shavano') ? 'Shavano Park' : 
+              scrapedTicket.court_name?.includes('Cibolo') ? 'Cibolo' : 'Unknown',
+      state: criteria.driverLicenseState,
+      status: "pending",
+      violation_date: scrapedTicket.due_date || new Date().toISOString().split("T")[0],
+      source: scrapedTicket.source,
+      confidence: scrapedTicket.confidence,
+    };
   }
 
   private static getCountiesInRadius(

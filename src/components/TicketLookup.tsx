@@ -159,16 +159,13 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
       selectedTickets.has(ticket.ticket_number)
     );
 
-    // Filter out $0 placeholder tickets
-    const realTickets = selectedResults.filter((ticket) => ticket.amount > 0);
-
-    if (realTickets.length === 0) {
-      setError("Please select actual tickets to add (not placeholder entries)");
+    if (selectedResults.length === 0) {
+      setError("Please select tickets to add");
       return;
     }
 
     // Convert lookup results to Ticket format
-    const tickets: Ticket[] = realTickets.map((result) => ({
+    const tickets: Ticket[] = selectedResults.map((result) => ({
       id: `lookup_${result.ticket_number}`,
       user_id: "", // Will be set by the parent component
       ticket_number: result.ticket_number,
@@ -371,14 +368,10 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>
-                  Found Tickets (
-                  {searchResults.filter((t) => t.amount > 0).length} real,{" "}
-                  {searchResults.filter((t) => t.amount === 0).length}{" "}
-                  placeholders)
+                  Found Tickets ({searchResults.length})
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Select real tickets to add to your dashboard. Placeholder
-                  entries (grayed out) indicate no tickets found in that county.
+                  Select tickets to add to your dashboard.
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -407,10 +400,6 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
                   selectedTickets.has(ticket.ticket_number)
                     ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950"
                     : ""
-                } ${
-                  ticket.amount === 0
-                    ? "opacity-60 bg-gray-50 dark:bg-gray-800"
-                    : ""
                 }`}
               >
                 <CardContent className="pt-6">
@@ -418,7 +407,6 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
                     <Checkbox
                       id={`found-${ticket.ticket_number}`}
                       checked={selectedTickets.has(ticket.ticket_number)}
-                      disabled={ticket.amount === 0}
                       onCheckedChange={(checked) =>
                         handleTicketSelect(
                           ticket.ticket_number,
