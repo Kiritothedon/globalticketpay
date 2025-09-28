@@ -298,12 +298,12 @@ export default function LandingPage() {
                 Major metropolitan areas
               </p>
             </div>
-              <div className="text-center p-6 bg-background rounded-lg border">
-                <h3 className="font-semibold text-foreground mb-2">Texas</h3>
-                <p className="text-sm text-muted-foreground">
-                  Harris, Dallas, Tarrant counties, San Antonio
-                </p>
-              </div>
+            <div className="text-center p-6 bg-background rounded-lg border">
+              <h3 className="font-semibold text-foreground mb-2">Texas</h3>
+              <p className="text-sm text-muted-foreground">
+                Harris, Dallas, Tarrant counties, San Antonio
+              </p>
+            </div>
             <div className="text-center p-6 bg-background rounded-lg border">
               <h3 className="font-semibold text-foreground mb-2">Florida</h3>
               <p className="text-sm text-muted-foreground">
@@ -330,12 +330,12 @@ export default function LandingPage() {
             <p className="text-muted-foreground mb-4">
               Don't see your court? Contact us to request support for your area.
             </p>
-             <Button 
-               variant="outline" 
-               onClick={() => setIsCourtSupportModalOpen(true)}
-             >
-               Request Court Support
-             </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsCourtSupportModalOpen(true)}
+            >
+              Request Court Support
+            </Button>
           </div>
         </div>
       </section>

@@ -120,6 +120,9 @@ export class SupabaseService {
     ticketData: Omit<Ticket, "id" | "created_at" | "updated_at">
   ) {
     try {
+      // First, ensure the user exists in the public.users table
+      await this.ensureUserExists(ticketData.user_id);
+
       const { data, error } = await supabase
         .from("tickets")
         .insert(ticketData)
@@ -134,6 +137,47 @@ export class SupabaseService {
       return data;
     } catch (error) {
       console.error("Supabase service error:", error);
+      throw error;
+    }
+  }
+
+  // Ensure user exists in public.users table
+  static async ensureUserExists(userId: string) {
+    try {
+      // Check if user exists in public.users table
+      const { data: existingUser, error: checkError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      // If user doesn't exist, create them
+      if (!existingUser && checkError?.code === "PGRST116") {
+        // Get user info from auth.users
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          throw new Error("Unable to get user information");
+        }
+
+        // Create user in public.users table
+        const { error: userError } = await supabase.from("users").insert({
+          id: user.id,
+          email: user.email || "",
+          first_name: user.user_metadata?.first_name || "",
+          last_name: user.user_metadata?.last_name || "",
+        });
+
+        if (userError) {
+          console.error("Error creating user profile:", userError);
+          throw userError;
+        }
+      } else if (checkError && checkError.code !== "PGRST116") {
+        // Some other error occurred
+        throw checkError;
+      }
+    } catch (error) {
+      console.error("Error ensuring user exists:", error);
       throw error;
     }
   }

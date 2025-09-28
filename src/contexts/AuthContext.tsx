@@ -40,38 +40,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Handle user profile creation for new signups only
+      // Ensure user exists in public.users table for all sign-ins
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
 
-        // Only create user profile for new signups (not existing signins)
-        if (event === "SIGNED_IN" && !user.app_metadata?.provider) {
-          try {
-            // Check if user already exists in our database
-            const { data: existingUser, error: checkError } = await supabase
-              .from("users")
-              .select("id")
-              .eq("id", user.id)
-              .single();
+        try {
+          // Check if user already exists in our database
+          const { data: existingUser, error: checkError } = await supabase
+            .from("users")
+            .select("id")
+            .eq("id", user.id)
+            .single();
 
-            // If user doesn't exist, create them
-            if (!existingUser && !checkError) {
-              const { error: userError } = await supabase.from("users").insert({
-                id: user.id,
-                email: user.email || "",
-                first_name: user.user_metadata?.first_name || "",
-                last_name: user.user_metadata?.last_name || "",
-              });
+          // If user doesn't exist, create them
+          if (!existingUser && checkError?.code === "PGRST116") {
+            const { error: userError } = await supabase.from("users").insert({
+              id: user.id,
+              email: user.email || "",
+              first_name: user.user_metadata?.first_name || "",
+              last_name: user.user_metadata?.last_name || "",
+            });
 
-              if (userError) {
-                console.error("Error creating user profile:", userError);
-              } else {
-              }
-            } else if (existingUser) {
+            if (userError) {
+              console.error("Error creating user profile:", userError);
             }
-          } catch (error) {
-            console.error("Error handling new user:", error);
           }
+        } catch (error) {
+          console.error("Error handling user:", error);
         }
 
         // Handle Google OAuth users
