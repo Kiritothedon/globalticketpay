@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export interface ScrapedTicketData {
   citation_no: string;
   name?: string;
@@ -15,6 +17,15 @@ export interface ScrapedTicketData {
   raw_data?: any;
 }
 
+export interface BackendTicketData {
+  citationNo: string;
+  violation: string;
+  fineAmount: number;
+  dueDate: string;
+  courtName: string;
+  source: 'shavano' | 'cibolo';
+}
+
 export class CountyScrapers {
   static async fetchTicketsFromSource(
     source: "shavano" | "cibolo",
@@ -25,6 +36,14 @@ export class CountyScrapers {
     }
   ): Promise<ScrapedTicketData[]> {
     try {
+      // Try backend scraping first
+      const backendTickets = await this.scrapeViaBackend(source, params);
+      if (backendTickets.length > 0) {
+        return backendTickets;
+      }
+
+      // Fallback to mock data if backend fails
+      console.warn(`Backend scraping failed for ${source}, using mock data`);
       switch (source) {
         case "shavano":
           return await this.scrapeShavanoPark(params);
@@ -39,6 +58,82 @@ export class CountyScrapers {
         `Failed to fetch tickets from ${source}. Please try manual entry.`
       );
     }
+  }
+
+  private static async scrapeViaBackend(
+    source: "shavano" | "cibolo",
+    params: {
+      dlNumber: string;
+      state: string;
+      dob: string;
+    }
+  ): Promise<ScrapedTicketData[]> {
+    try {
+      // Try Supabase Edge Function first
+      const { data, error } = await supabase.functions.invoke('scrape-tickets', {
+        body: {
+          source,
+          driverLicenseNumber: params.dlNumber,
+          state: params.state,
+          dob: params.dob
+        }
+      });
+
+      if (!error && data?.tickets?.length > 0) {
+        return this.convertBackendTickets(data.tickets, params);
+      }
+
+      // Fallback to external scraper service
+      const scraperServiceUrl = process.env.VITE_SCRAPER_SERVICE_URL || 'http://localhost:3005';
+      const response = await fetch(`${scraperServiceUrl}/scrape`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          source,
+          driverLicenseNumber: params.dlNumber,
+          state: params.state,
+          dob: params.dob
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Scraper service error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return this.convertBackendTickets(result.tickets || [], params);
+
+    } catch (error) {
+      console.error('Backend scraping failed:', error);
+      return [];
+    }
+  }
+
+  private static convertBackendTickets(
+    backendTickets: BackendTicketData[],
+    params: { dlNumber: string; state: string; dob: string }
+  ): ScrapedTicketData[] {
+    return backendTickets.map(ticket => ({
+      citation_no: ticket.citationNo,
+      name: '', // Not provided by backend
+      address: '', // Not provided by backend
+      dl_no: params.dlNumber,
+      dob: params.dob,
+      fine_amount: ticket.fineAmount,
+      due_date: ticket.dueDate,
+      court_date: '', // Not provided by backend
+      violation: ticket.violation,
+      court_name: ticket.courtName,
+      court_address: '', // Not provided by backend
+      confidence: 0.95, // High confidence for real scraping
+      source: ticket.source,
+      raw_data: {
+        scrapedAt: new Date().toISOString(),
+        backendSource: 'scraper-service'
+      }
+    }));
   }
 
   private static async scrapeShavanoPark(params: {

@@ -1,0 +1,19 @@
+{
+  "name": "ticket-scraper-service",
+  "version": "1.0.0",
+  "description": "Ticket scraping service for Shavano Park and Cibolo County",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
