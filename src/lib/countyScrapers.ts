@@ -23,7 +23,7 @@ export interface BackendTicketData {
   fineAmount: number;
   dueDate: string;
   courtName: string;
-  source: 'shavano' | 'cibolo';
+  source: "shavano" | "cibolo";
 }
 
 export class CountyScrapers {
@@ -70,36 +70,44 @@ export class CountyScrapers {
   ): Promise<ScrapedTicketData[]> {
     try {
       // Try Supabase Edge Function first (works on Vercel)
-      const { data, error } = await supabase.functions.invoke('scrape-tickets', {
-        body: {
-          source,
-          driverLicenseNumber: params.dlNumber,
-          state: params.state,
-          dob: params.dob
+      const { data, error } = await supabase.functions.invoke(
+        "scrape-tickets",
+        {
+          body: {
+            source,
+            driverLicenseNumber: params.dlNumber,
+            state: params.state,
+            dob: params.dob,
+          },
         }
-      });
+      );
 
       if (!error && data?.tickets?.length > 0) {
-        console.log(`✅ Supabase Edge Function found ${data.tickets.length} tickets for ${source}`);
+        console.log(
+          `✅ Supabase Edge Function found ${data.tickets.length} tickets for ${source}`
+        );
         return this.convertBackendTickets(data.tickets, params);
       }
 
       // Fallback to external scraper service (only works in development)
-      if (process.env.NODE_ENV === 'development') {
-        const scraperServiceUrl = process.env.VITE_SCRAPER_SERVICE_URL || 'http://localhost:3005';
-        console.log(`🔄 Falling back to external scraper service: ${scraperServiceUrl}`);
-        
+      if (process.env.NODE_ENV === "development") {
+        const scraperServiceUrl =
+          process.env.VITE_SCRAPER_SERVICE_URL || "http://localhost:3005";
+        console.log(
+          `🔄 Falling back to external scraper service: ${scraperServiceUrl}`
+        );
+
         const response = await fetch(`${scraperServiceUrl}/scrape`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             source,
             driverLicenseNumber: params.dlNumber,
             state: params.state,
-            dob: params.dob
-          })
+            dob: params.dob,
+          }),
         });
 
         if (!response.ok) {
@@ -109,13 +117,14 @@ export class CountyScrapers {
         const result = await response.json();
         return this.convertBackendTickets(result.tickets || [], params);
       } else {
-        console.log(`⚠️ External scraper service not available in production, using mock data for ${source}`);
+        console.log(
+          `⚠️ External scraper service not available in production, using mock data for ${source}`
+        );
         // In production, fall back to mock data if Edge Function fails
         return [];
       }
-
     } catch (error) {
-      console.error('Backend scraping failed:', error);
+      console.error("Backend scraping failed:", error);
       return [];
     }
   }
@@ -124,24 +133,24 @@ export class CountyScrapers {
     backendTickets: BackendTicketData[],
     params: { dlNumber: string; state: string; dob: string }
   ): ScrapedTicketData[] {
-    return backendTickets.map(ticket => ({
+    return backendTickets.map((ticket) => ({
       citation_no: ticket.citationNo,
-      name: '', // Not provided by backend
-      address: '', // Not provided by backend
+      name: "", // Not provided by backend
+      address: "", // Not provided by backend
       dl_no: params.dlNumber,
       dob: params.dob,
       fine_amount: ticket.fineAmount,
       due_date: ticket.dueDate,
-      court_date: '', // Not provided by backend
+      court_date: "", // Not provided by backend
       violation: ticket.violation,
       court_name: ticket.courtName,
-      court_address: '', // Not provided by backend
+      court_address: "", // Not provided by backend
       confidence: 0.95, // High confidence for real scraping
       source: ticket.source,
       raw_data: {
         scrapedAt: new Date().toISOString(),
-        backendSource: 'scraper-service'
-      }
+        backendSource: "scraper-service",
+      },
     }));
   }
 

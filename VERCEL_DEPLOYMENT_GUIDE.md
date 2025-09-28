@@ -72,10 +72,10 @@ vercel
 
 ### **Development vs Production**
 
-| Environment | Scraping Method | Backend |
-|-------------|----------------|---------|
-| **Development** | Supabase Edge Function + External Service Fallback | Local Docker + Supabase |
-| **Production (Vercel)** | Supabase Edge Function Only | Supabase Only |
+| Environment             | Scraping Method                                    | Backend                 |
+| ----------------------- | -------------------------------------------------- | ----------------------- |
+| **Development**         | Supabase Edge Function + External Service Fallback | Local Docker + Supabase |
+| **Production (Vercel)** | Supabase Edge Function Only                        | Supabase Only           |
 
 ### **Data Flow on Vercel**
 
@@ -90,6 +90,7 @@ vercel
 ## 🔍 **Testing Your Deployment**
 
 After deployment, test with your data:
+
 - **DL Number:** 46894084
 - **State:** TX
 - **DOB:** 12/09/2001
@@ -101,11 +102,13 @@ The app should find tickets from both Shavano Park and Cibolo County.
 ### **If Scraping Doesn't Work on Vercel:**
 
 1. **Check Supabase Edge Function logs:**
+
    ```bash
    supabase functions logs scrape-tickets
    ```
 
 2. **Verify Edge Function is deployed:**
+
    ```bash
    supabase functions list
    ```
@@ -121,6 +124,7 @@ The app should find tickets from both Shavano Park and Cibolo County.
 ### **If You Need More Complex Scraping:**
 
 Consider deploying the external scraper service to:
+
 - **Railway** (recommended for Node.js)
 - **Render** (good for Docker)
 - **DigitalOcean App Platform**
@@ -139,6 +143,7 @@ Then update `VITE_SCRAPER_SERVICE_URL` in Vercel environment variables.
 Your app is now fully configured for Vercel deployment. The scraping functionality will work using Supabase Edge Functions, and you won't need to manage any separate backend servers.
 
 **Next Steps:**
+
 1. Deploy the Supabase Edge Function
 2. Set up environment variables in Vercel
 3. Deploy to Vercel
