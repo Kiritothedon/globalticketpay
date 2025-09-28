@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import puppeteer from "puppeteer";
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -35,10 +34,10 @@ app.post("/scrape", async (req, res) => {
 
     switch (source) {
       case "shavano":
-        tickets = await scrapeShavanoPark(driverLicenseNumber, state);
+        tickets = await scrapeShavanoPark(dlNumber, state);
         break;
       case "cibolo":
-        tickets = await scrapeCiboloCounty(driverLicenseNumber, state, dob);
+        tickets = await scrapeCiboloCounty(dlNumber, state, dob);
         break;
       default:
         return res.status(400).json({ error: "Invalid source" });
@@ -146,16 +145,6 @@ async function scrapeCiboloCounty(dlNumber, state, dob) {
   }
   
   return tickets;
-}
-
-function formatDate(dateStr) {
-  try {
-    // Convert MM/DD/YYYY to YYYY-MM-DD
-    const [month, day, year] = dateStr.split("/");
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  } catch {
-    return dateStr;
-  }
 }
 
 app.listen(PORT, () => {
