@@ -24,8 +24,11 @@ export class SupabaseService {
   ) {
     try {
       // Get the current authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
       if (authError || !user) {
         throw new Error("User must be authenticated to create tickets");
       }
@@ -33,7 +36,7 @@ export class SupabaseService {
       // Ensure the ticket has the correct user_id
       const ticketWithUserId = {
         ...ticketData,
-        user_id: user.id
+        user_id: user.id,
       };
 
       const { data, error } = await supabase
@@ -76,7 +79,9 @@ export class SupabaseService {
 
   static async updateTicket(
     ticketId: string,
-    updates: Partial<Omit<Ticket, "id" | "user_id" | "created_at" | "updated_at">>
+    updates: Partial<
+      Omit<Ticket, "id" | "user_id" | "created_at" | "updated_at">
+    >
   ) {
     try {
       const { data, error } = await supabase

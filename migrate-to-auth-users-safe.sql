@@ -1,32 +1,24 @@
--- Migration: Remove custom users table and use auth.users only
--- This script removes the conflicting public.users table and fixes foreign keys
+-- Safe Migration: Remove custom users table and use auth.users only
+-- This script safely handles existing constraints and tables
 
 -- Step 1: Drop the custom public.users table if it exists
 -- This removes the conflicting table with password_hash column
 DROP TABLE IF EXISTS public.users CASCADE;
 
 -- Step 2: Ensure tickets table has proper foreign key to auth.users
--- First, drop any existing foreign key constraints
+-- First, drop any existing foreign key constraints to avoid conflicts
 ALTER TABLE IF EXISTS tickets DROP CONSTRAINT IF EXISTS tickets_user_id_fkey;
 
 -- Make sure user_id column exists and is properly typed
 ALTER TABLE tickets 
 ADD COLUMN IF NOT EXISTS user_id UUID;
 
--- Add the foreign key constraint to reference auth.users(id) directly (if it doesn't exist)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'tickets_user_id_fkey'
-    ) THEN
-        ALTER TABLE tickets 
-        ADD CONSTRAINT tickets_user_id_fkey 
-        FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-    END IF;
-END $$;
+-- Add the foreign key constraint to reference auth.users(id) directly
+ALTER TABLE tickets 
+ADD CONSTRAINT tickets_user_id_fkey 
+FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
--- Create an index on user_id for better performance
+-- Create an index on user_id for better performance (if it doesn't exist)
 CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
 
 -- Add a check constraint to ensure user_id is never NULL (if it doesn't exist)
@@ -69,7 +61,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON tickets TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tickets TO anon;
 
 -- Step 5: Clean up any references to public.users in other tables
--- Drop court_support_requests table if it references public.users
+-- Drop court_support_requests table if it exists
 DROP TABLE IF EXISTS court_support_requests CASCADE;
 
 -- Recreate court_support_requests without user references

@@ -97,7 +97,7 @@ export default function ProfilePage() {
         data: {
           first_name: formData.first_name,
           last_name: formData.last_name,
-        }
+        },
       });
 
       if (error) {
