@@ -13,12 +13,14 @@ The scraping system uses a multi-layered approach:
 ## Backend Scraping Options
 
 ### Option 1: Supabase Edge Functions
+
 - **File**: `supabase/functions/scrape-tickets/index.ts`
 - **File**: `supabase/functions/scrape-tickets-puppeteer/index.ts`
 - **Pros**: Integrated with Supabase, serverless
 - **Cons**: Limited execution time, Deno environment
 
 ### Option 2: External Node.js Service (Recommended)
+
 - **Directory**: `scraper-service/`
 - **Pros**: Full Node.js environment, Puppeteer support, Docker deployment
 - **Cons**: Requires separate deployment
@@ -30,11 +32,13 @@ The scraping system uses a multi-layered approach:
 **URL**: `https://www.trafficpayment.com/SearchByInvoiceInfo.aspx?csdId=520`
 
 **Form Fields**:
+
 - Driver's License: `ctl00$ContentPlaceHolder1$txtDLNumber`
 - State: `ctl00$ContentPlaceHolder1$ddlState`
 - Submit: `ctl00$ContentPlaceHolder1$btnSearch`
 
 **Process**:
+
 1. Load the search page
 2. Extract ASP.NET viewstate and validation tokens
 3. Fill in driver license and state
@@ -42,11 +46,12 @@ The scraping system uses a multi-layered approach:
 5. Parse results table for ticket data
 
 **Expected Data**:
+
 ```json
 {
   "citationNo": "SP-123456",
   "violation": "Speeding",
-  "fineAmount": 150.00,
+  "fineAmount": 150.0,
   "dueDate": "2024-02-01",
   "courtName": "Shavano Park Municipal Court",
   "source": "shavano"
@@ -58,6 +63,7 @@ The scraping system uses a multi-layered approach:
 **URL**: `https://cibolotx.municipalonlinepayments.com/cibolotx/court/search`
 
 **Process**:
+
 1. Load the search page
 2. Click "Driver's License" option
 3. Fill in DL number, state, and DOB
@@ -65,11 +71,12 @@ The scraping system uses a multi-layered approach:
 5. Parse checkbox list results
 
 **Expected Data**:
+
 ```json
 {
   "citationNo": "C-123456",
   "violation": "Parking Violation",
-  "fineAmount": 75.00,
+  "fineAmount": 75.0,
   "dueDate": "2024-02-15",
   "courtName": "Cibolo Municipal Court",
   "source": "cibolo"
@@ -84,14 +91,14 @@ The frontend automatically tries multiple scraping methods:
 
 ```typescript
 // 1. Try Supabase Edge Function
-const { data, error } = await supabase.functions.invoke('scrape-tickets', {
-  body: { source, driverLicenseNumber, state, dob }
+const { data, error } = await supabase.functions.invoke("scrape-tickets", {
+  body: { source, driverLicenseNumber, state, dob },
 });
 
 // 2. Fallback to external service
 const response = await fetch(`${scraperServiceUrl}/scrape`, {
-  method: 'POST',
-  body: JSON.stringify({ source, driverLicenseNumber, state, dob })
+  method: "POST",
+  body: JSON.stringify({ source, driverLicenseNumber, state, dob }),
 });
 
 // 3. Fallback to mock data
@@ -114,6 +121,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 ### Option A: Docker Deployment (Recommended)
 
 1. **Deploy scraper service**:
+
    ```bash
    cd scraper-service
    ./deploy.sh
@@ -127,6 +135,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_key
 ### Option B: Supabase Edge Functions
 
 1. **Deploy Edge Functions**:
+
    ```bash
    supabase functions deploy scrape-tickets
    ```
@@ -244,11 +253,13 @@ To add new counties:
 ### Common Issues
 
 1. **"Scraping failed" errors**:
+
    - Check if target websites are accessible
    - Verify form field selectors haven't changed
    - Check browser console for JavaScript errors
 
 2. **No tickets found**:
+
    - Verify driver license number format
    - Check if state code is correct
    - Ensure DOB is provided for Cibolo

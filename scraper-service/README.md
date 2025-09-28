@@ -16,6 +16,7 @@ A Node.js service that scrapes traffic ticket data from Shavano Park and Cibolo 
 ### Using Docker (Recommended)
 
 1. **Deploy the service:**
+
    ```bash
    ./deploy.sh
    ```
@@ -28,11 +29,13 @@ A Node.js service that scrapes traffic ticket data from Shavano Park and Cibolo 
 ### Manual Setup
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Start the service:**
+
    ```bash
    npm start
    ```
@@ -45,11 +48,13 @@ A Node.js service that scrapes traffic ticket data from Shavano Park and Cibolo 
 ## API Endpoints
 
 ### Health Check
+
 ```http
 GET /health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -58,6 +63,7 @@ GET /health
 ```
 
 ### Scrape Tickets
+
 ```http
 POST /scrape
 Content-Type: application/json
@@ -71,13 +77,14 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "tickets": [
     {
       "citationNo": "SP-123456",
       "violation": "Speeding",
-      "fineAmount": 150.00,
+      "fineAmount": 150.0,
       "dueDate": "2024-02-01",
       "courtName": "Shavano Park Municipal Court",
       "source": "shavano"
@@ -90,11 +97,13 @@ Content-Type: application/json
 ## Supported Sources
 
 ### 1. Shavano Park
+
 - **URL**: https://www.trafficpayment.com/SearchByInvoiceInfo.aspx?csdId=520
 - **Required Fields**: `driverLicenseNumber`, `state`
 - **Optional Fields**: `dob` (not used but accepted)
 
 ### 2. Cibolo County
+
 - **URL**: https://cibolotx.municipalonlinepayments.com/cibolotx/court/search
 - **Required Fields**: `driverLicenseNumber`, `state`, `dob`
 - **Search Type**: Driver's License
@@ -109,6 +118,7 @@ Content-Type: application/json
 ### Docker Configuration
 
 The service runs in a Docker container with:
+
 - Node.js 18 Alpine
 - Chromium browser for Puppeteer
 - Non-root user for security
@@ -123,6 +133,7 @@ The frontend automatically tries multiple scraping methods:
 3. **Mock Data** (fallback)
 
 Set the scraper service URL in your frontend environment:
+
 ```env
 VITE_SCRAPER_SERVICE_URL=http://localhost:3005
 ```
@@ -139,6 +150,7 @@ The service includes comprehensive error handling:
 ## Monitoring
 
 ### Health Checks
+
 ```bash
 # Check service health
 curl http://localhost:3005/health
@@ -148,6 +160,7 @@ docker ps | grep ticket-scraper-service
 ```
 
 ### Logs
+
 ```bash
 # View service logs
 docker logs ticket-scraper-service
@@ -159,6 +172,7 @@ docker logs -f ticket-scraper-service
 ## Development
 
 ### Local Development
+
 ```bash
 # Install dependencies
 npm install
@@ -173,6 +187,7 @@ curl -X POST http://localhost:3005/scrape \
 ```
 
 ### Testing
+
 ```bash
 # Test Shavano Park
 curl -X POST http://localhost:3005/scrape \
@@ -190,11 +205,13 @@ curl -X POST http://localhost:3005/scrape \
 ### Common Issues
 
 1. **Service won't start**
+
    - Check if port 3005 is available
    - Verify Docker is running
    - Check logs: `docker logs ticket-scraper-service`
 
 2. **Scraping fails**
+
    - Verify target websites are accessible
    - Check if website structure has changed
    - Review browser console logs
@@ -207,6 +224,7 @@ curl -X POST http://localhost:3005/scrape \
 ### Debug Mode
 
 Enable debug logging by setting:
+
 ```bash
 NODE_ENV=development
 ```
