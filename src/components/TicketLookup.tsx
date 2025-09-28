@@ -367,9 +367,7 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>
-                  Found Tickets ({searchResults.length})
-                </CardTitle>
+                <CardTitle>Found Tickets ({searchResults.length})</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Select tickets to add to your dashboard.
                 </p>

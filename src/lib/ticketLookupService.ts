@@ -85,12 +85,12 @@ export class TicketLookupService {
 
     try {
       // Convert date format from YYYY-MM-DD to MM/DD/YYYY for scraper
-      const dobParts = criteria.dateOfBirth.split('-');
+      const dobParts = criteria.dateOfBirth.split("-");
       const formattedDob = `${dobParts[1]}/${dobParts[2]}/${dobParts[0]}`;
 
       // Scrape from both Shavano Park and Cibolo County
-      const sources = ['shavano', 'cibolo'] as const;
-      
+      const sources = ["shavano", "cibolo"] as const;
+
       for (const source of sources) {
         try {
           const scrapedTickets = await CountyScrapers.fetchTicketsFromSource(
@@ -103,7 +103,7 @@ export class TicketLookupService {
           );
 
           // Convert scraped tickets to lookup results
-          const convertedTickets = scrapedTickets.map(ticket => 
+          const convertedTickets = scrapedTickets.map((ticket) =>
             this.convertScrapedTicketToLookupResult(ticket, criteria)
           );
 
@@ -128,13 +128,18 @@ export class TicketLookupService {
       ticket_number: scrapedTicket.citation_no,
       violation: scrapedTicket.violation || "Unknown Violation",
       amount: scrapedTicket.fine_amount,
-      due_date: scrapedTicket.due_date || new Date().toISOString().split("T")[0],
+      due_date:
+        scrapedTicket.due_date || new Date().toISOString().split("T")[0],
       court: scrapedTicket.court_name || "Unknown Court",
-      county: scrapedTicket.court_name?.includes('Shavano') ? 'Shavano Park' : 
-              scrapedTicket.court_name?.includes('Cibolo') ? 'Cibolo' : 'Unknown',
+      county: scrapedTicket.court_name?.includes("Shavano")
+        ? "Shavano Park"
+        : scrapedTicket.court_name?.includes("Cibolo")
+        ? "Cibolo"
+        : "Unknown",
       state: criteria.driverLicenseState,
       status: "pending",
-      violation_date: scrapedTicket.due_date || new Date().toISOString().split("T")[0],
+      violation_date:
+        scrapedTicket.due_date || new Date().toISOString().split("T")[0],
       source: scrapedTicket.source,
       confidence: scrapedTicket.confidence,
     };
