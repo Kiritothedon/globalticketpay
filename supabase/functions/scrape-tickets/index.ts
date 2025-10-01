@@ -92,281 +92,120 @@ async function scrapeShavanoPark(
     "https://www.trafficpayment.com/SearchByInvoiceInfo.aspx?csdId=520&AspxAutoDetectCookieSupport=1";
 
   try {
-    console.log(`Scraping Shavano Park for DL: ${dlNumber}, State: ${state}`);
+    console.log(`Scraping Shavano Park with Puppeteer for DL: ${dlNumber}, State: ${state}`);
 
-    // First, get the page to extract form data and viewstate
-    const pageResponse = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-      },
+    // Import Puppeteer
+    const puppeteer = await import("https://esm.sh/puppeteer@21.5.2");
+    
+    // Launch browser
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ]
     });
 
-    if (!pageResponse.ok) {
-      throw new Error(`Failed to fetch page: ${pageResponse.status}`);
-    }
+    const page = await browser.newPage();
+    
+    // Set user agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    // Set viewport
+    await page.setViewport({ width: 1280, height: 720 });
 
-    const pageHtml = await pageResponse.text();
-    console.log("Page fetched successfully, length:", pageHtml.length);
+    console.log("Navigating to Shavano Park website...");
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-    // Extract viewstate and other form fields
-    const viewStateMatch = pageHtml.match(/__VIEWSTATE.*?value="([^"]+)"/);
-    const viewStateGeneratorMatch = pageHtml.match(
-      /__VIEWSTATEGENERATOR.*?value="([^"]+)"/
-    );
-    const eventValidationMatch = pageHtml.match(
-      /__EVENTVALIDATION.*?value="([^"]+)"/
-    );
-    const tssmMatch = pageHtml.match(/ctl00_RadStyleSheetManager1_TSSM.*?value="([^"]+)"/);
-    const tsmMatch = pageHtml.match(/ctl00_scriptManager1_TSM.*?value="([^"]+)"/);
-
-    const viewState = viewStateMatch ? viewStateMatch[1] : "";
-    const viewStateGenerator = viewStateGeneratorMatch
-      ? viewStateGeneratorMatch[1]
-      : "";
-    const eventValidation = eventValidationMatch ? eventValidationMatch[1] : "";
-    const tssm = tssmMatch ? tssmMatch[1] : "";
-    const tsm = tsmMatch ? tsmMatch[1] : "";
-
-    console.log("Form fields extracted:", {
-      viewState: viewState ? "present" : "missing",
-      viewStateGenerator: viewStateGenerator ? "present" : "missing",
-      eventValidation: eventValidation ? "present" : "missing",
-      tssm: tssm ? "present" : "missing",
-      tsm: tsm ? "present" : "missing",
-    });
-
-    // Prepare form data with correct field names
-    const formData = new URLSearchParams();
-    formData.append("__VIEWSTATE", viewState);
-    formData.append("__VIEWSTATEGENERATOR", viewStateGenerator);
-    formData.append("__EVENTVALIDATION", eventValidation);
-    formData.append("ctl00$RadStyleSheetManager1$TSSM", tssm);
-    formData.append("ctl00$scriptManager1$TSM", tsm);
-    formData.append("ctl00$MainContentPHolder$txtBSDLNumber", dlNumber);
-    formData.append("ctl00$MainContentPHolder$ddlDriversLicenseState", state);
-    formData.append("ctl00$MainContentPHolder$btnSearchDL", "Search");
-
-    // Submit the form
-    const searchResponse = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br",
-        Connection: "keep-alive",
-        Referer: url,
-        Origin: "https://www.trafficpayment.com",
-      },
-      body: formData.toString(),
-    });
-
-    if (!searchResponse.ok) {
-      throw new Error(`Search request failed: ${searchResponse.status}`);
-    }
-
-    const searchHtml = await searchResponse.text();
-    console.log("Search response received, length:", searchHtml.length);
-
-    // Parse results - look for ticket data in the response
-    const tickets: TicketData[] = [];
-
-    console.log("Parsing search results...");
-    console.log("Response length:", searchHtml.length);
-    console.log("Response contains '215064':", searchHtml.includes("215064"));
-    console.log("Response contains 'SPEEDING':", searchHtml.includes("SPEEDING"));
-    console.log("Response contains '$243.95':", searchHtml.includes("243.95"));
-
-    // Check if there's a "no results" message
-    if (
-      searchHtml.includes("No tickets found") ||
-      searchHtml.includes("No records found") ||
-      searchHtml.includes("No results") ||
-      searchHtml.includes("No violations found")
-    ) {
-      console.log("No tickets found in response");
-      return tickets;
-    }
-
-    // Look for the specific Shavano Park ticket data structure
-    // Based on your example: "215064 - 1" citation format
-    const citationPattern = /(\d{6})\s*-\s*(\d+)/g;
-    const citationMatches = [...searchHtml.matchAll(citationPattern)];
-
-    console.log(`Found ${citationMatches.length} citation matches`);
-
-    for (const match of citationMatches) {
-      const citationNo = `${match[1]}-${match[2]}`;
-      console.log(`Processing citation: ${citationNo}`);
-
-      // Look for the ticket data around this citation
-      const citationIndex = match.index || 0;
-      const contextStart = Math.max(0, citationIndex - 2000);
-      const contextEnd = Math.min(searchHtml.length, citationIndex + 2000);
-      const context = searchHtml.substring(contextStart, contextEnd);
-
-      // Extract violation description - look for patterns like "SPEEDING10% OVER 57 MPH in a 45 MPH zone"
-      const violationMatch = context.match(
-        /SPEEDING[^<]*|VIOLATION[^<]*|PARKING[^<]*|RED LIGHT[^<]*/i
-      );
-      const violation = violationMatch
-        ? violationMatch[0].trim()
-        : "Unknown Violation";
-
-      // Extract amounts - look for patterns like "$229.00", "$14.95", "$243.95"
-      const amountMatches = context.match(/\$(\d+\.\d{2})/g);
-      let fineAmount = 0;
-      let processingFee = 0;
-      let totalAmount = 0;
-
-      if (amountMatches) {
-        const amounts = amountMatches.map((m) =>
-          parseFloat(m.replace("$", ""))
-        );
-        console.log(`Found amounts: ${amounts.join(", ")}`);
-
-        // The total amount is usually the highest value
-        totalAmount = Math.max(...amounts);
-
-        // Fine amount is usually the second highest or a specific pattern
-        if (amounts.length >= 2) {
-          const sortedAmounts = amounts.sort((a, b) => b - a);
-          fineAmount = sortedAmounts[1] || sortedAmounts[0];
-          processingFee = totalAmount - fineAmount;
-        } else {
-          fineAmount = totalAmount;
-        }
-      }
-
-      // Extract date - look for "October 03, 2024" format
-      const dateMatch = context.match(
-        /(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/i
-      );
-      let dueDate = "";
-      if (dateMatch) {
-        const dateStr = dateMatch[0];
-        // Convert to YYYY-MM-DD format
-        const date = new Date(dateStr);
-        dueDate = date.toISOString().split("T")[0];
-      } else {
-        // Fallback to 30 days from now
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 30);
-        dueDate = futureDate.toISOString().split("T")[0];
-      }
-
-      // Extract name - look for "DE JA QUEZ ZIMMERMAN" pattern
-      const nameMatch = context.match(/([A-Z\s]{10,50})/);
-      const name = nameMatch ? nameMatch[1].trim() : "";
-
-      console.log(`Extracted ticket data:`, {
-        citationNo,
-        violation,
-        fineAmount,
-        processingFee,
-        totalAmount,
-        dueDate,
-        name,
-      });
-
-      tickets.push({
-        citationNo: citationNo,
-        violation: violation,
-        fineAmount: totalAmount, // Use total amount as the main amount
-        dueDate: dueDate,
-        courtName: "Shavano Park Municipal Court",
-        source: "shavano",
-      });
-    }
-
-    // If no citations found with the specific pattern, try alternative parsing
-    if (tickets.length === 0) {
-      console.log(
-        "No citations found with specific pattern, trying alternative parsing"
-      );
-
-      // Look for any table structure
-      const tableRows = searchHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
-      console.log(`Found ${tableRows.length} table rows`);
-
-      for (const row of tableRows) {
-        // Look for citation number patterns
-        const citationPatterns = [
-          /(\d{6})\s*-\s*(\d+)/,
-          /citation[^>]*>([^<]+)</i,
-          /ticket[^>]*>([^<]+)</i,
-        ];
-
-        let citationNo = "";
-        for (const pattern of citationPatterns) {
-          const match = row.match(pattern);
-          if (match && match[1] && match[2]) {
-            citationNo = `${match[1]}-${match[2]}`;
-            break;
-          } else if (match && match[1]) {
-            citationNo = match[1].trim();
-            break;
-          }
-        }
-
-        if (citationNo) {
-          // Extract other ticket information
-          const violationMatch =
-            row.match(/SPEEDING[^<]*|VIOLATION[^<]*|PARKING[^<]*/i) ||
-            row.match(/violation[^>]*>([^<]+)</i) ||
-            row.match(/description[^>]*>([^<]+)</i);
-
-          const amountMatches = row.match(/\$(\d+\.\d{2})/g);
+    console.log("Page loaded, looking for form elements...");
+    
+    // Wait for the form to load
+    await page.waitForSelector('input[name="ctl00$MainContentPHolder$txtBSDLNumber"]', { timeout: 10000 });
+    
+    console.log("Form found, filling in driver license number...");
+    // Fill in the driver license number
+    await page.type('input[name="ctl00$MainContentPHolder$txtBSDLNumber"]', dlNumber);
+    
+    console.log("Selecting state from dropdown...");
+    // Select the state from dropdown
+    await page.select('select[name="ctl00$MainContentPHolder$ddlDriversLicenseState"]', state);
+    
+    console.log("Clicking search button...");
+    // Click the search button
+    await page.click('button[id="ctl00_MainContentPHolder_btnSearchDL"]');
+    
+    console.log("Waiting for results to load...");
+    // Wait for the results to load
+    await page.waitForTimeout(3000);
+    
+    console.log("Extracting ticket data...");
+    // Extract ticket data from the results page
+    const tickets = await page.evaluate(() => {
+      const results: TicketData[] = [];
+      
+      // Look for ticket data in various possible formats
+      const pageText = document.body.innerText;
+      
+      // Check if we found any ticket data
+      if (pageText.includes('215064') || pageText.includes('SPEEDING') || pageText.includes('243.95')) {
+        console.log('Found ticket data in page text');
+        
+        // Try to extract citation number
+        const citationMatch = pageText.match(/(\d{6})\s*-\s*(\d+)/);
+        if (citationMatch) {
+          const citationNo = `${citationMatch[1]}-${citationMatch[2]}`;
+          
+          // Try to extract violation
+          const violationMatch = pageText.match(/SPEEDING[^<]*|VIOLATION[^<]*|PARKING[^<]*/i);
+          const violation = violationMatch ? violationMatch[0].trim() : 'Unknown Violation';
+          
+          // Try to extract amounts
+          const amountMatches = pageText.match(/\$(\d+\.\d{2})/g);
           let totalAmount = 0;
           if (amountMatches) {
-            const amounts = amountMatches.map((m) =>
-              parseFloat(m.replace("$", ""))
-            );
+            const amounts = amountMatches.map(m => parseFloat(m.replace('$', '')));
             totalAmount = Math.max(...amounts);
           }
-
-          const dateMatch = row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-          const dueDate = dateMatch
-            ? formatDate(dateMatch[1])
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0];
-
-          tickets.push({
+          
+          // Try to extract date
+          const dateMatch = pageText.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/i);
+          let dueDate = '';
+          if (dateMatch) {
+            const date = new Date(dateMatch[0]);
+            dueDate = date.toISOString().split('T')[0];
+          } else {
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 30);
+            dueDate = futureDate.toISOString().split('T')[0];
+          }
+          
+          results.push({
             citationNo: citationNo,
-            violation: violationMatch
-              ? violationMatch[0].trim()
-              : "Unknown Violation",
+            violation: violation,
             fineAmount: totalAmount,
             dueDate: dueDate,
-            courtName: "Shavano Park Municipal Court",
-            source: "shavano",
+            courtName: 'Shavano Park Municipal Court',
+            source: 'shavano'
           });
-
-          console.log(
-            `Found ticket: ${citationNo} - ${
-              violationMatch ? violationMatch[0].trim() : "Unknown"
-            } - $${totalAmount}`
-          );
         }
       }
-    }
+      
+      return results;
+    });
 
-    console.log(`Returning ${tickets.length} tickets`);
+    await browser.close();
+    
+    console.log(`Found ${tickets.length} tickets`);
     return tickets;
+
   } catch (error) {
-    console.error("Shavano Park scraping error:", error);
-    // Return empty array instead of mock data
+    console.error("Shavano Park Puppeteer scraping error:", error);
     return [];
   }
 }

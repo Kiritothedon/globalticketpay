@@ -96,13 +96,13 @@ export function TicketLookup({ onTicketsFound, onClose }: TicketLookupProps) {
 
       if (results.length === 0) {
         setError(
-          "No tickets found in Shavano Park. You can still add tickets manually."
+          "No tickets found in Shavano Park. This could be because:\n• The ticket data is not available in their system\n• The website structure has changed\n• There are no tickets for this license number\n\nYou can still add tickets manually using the form below."
         );
       }
     } catch (err) {
       console.error("Shavano search failed:", err);
       setError(
-        err instanceof Error ? err.message : "Search failed. Please try again."
+        "Failed to search for tickets. This could be due to:\n• Network connectivity issues\n• The Shavano Park website being temporarily unavailable\n• Changes to their website structure\n\nPlease try again or add tickets manually using the form below."
       );
     } finally {
       setIsSearching(false);
