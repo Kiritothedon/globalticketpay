@@ -1,0 +1,20 @@
+{
+  "name": "traffic-ticket-scraper",
+  "version": "1.0.0",
+  "description": "Standalone microservice for scraping traffic tickets",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "playwright": "^1.40.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
