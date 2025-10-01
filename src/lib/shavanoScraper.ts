@@ -65,7 +65,7 @@ export class ShavanoScraper {
 
       if (error) {
         console.error("Edge function error:", error);
-        return [];
+        throw new Error(error.message || "We couldn't retrieve your ticket automatically. Please add it manually.");
       }
 
       if (data?.tickets?.length > 0) {
@@ -75,10 +75,14 @@ export class ShavanoScraper {
         return this.convertEdgeFunctionTickets(data.tickets, params);
       }
 
-      return [];
+      // If no tickets found, throw a specific error for better UX
+      throw new Error("No tickets found in Shavano Park. This could be because:\n• The ticket data is not available in their system\n• The website structure has changed\n• There are no tickets for this license number\n\nYou can still add tickets manually using the form below.");
     } catch (error) {
       console.error("Edge function search failed:", error);
-      return [];
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("We couldn't retrieve your ticket automatically. Please add it manually.");
     }
   }
 

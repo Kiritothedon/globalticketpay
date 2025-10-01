@@ -23,7 +23,7 @@ interface CountyScraper {
   searchTickets(params: { driverLicenseNumber: string; state: string; dob?: string }): Promise<TicketData[]>;
 }
 
-// Shavano Park scraper implementation using Playwright
+// Shavano Park scraper implementation
 class ShavanoParkScraper implements CountyScraper {
   name = "shavano";
   private readonly baseUrl = "https://www.trafficpayment.com/SearchByInvoiceInfo.aspx?csdId=520&AspxAutoDetectCookieSupport=1";
@@ -32,13 +32,8 @@ class ShavanoParkScraper implements CountyScraper {
     try {
       console.log(`[ShavanoParkScraper] Starting search for DL: ${params.driverLicenseNumber}, State: ${params.state}`);
 
-      // Try Playwright first, but fallback gracefully if it fails
-      try {
-        // Import Playwright
-        // NOTE: Playwright may not work reliably in Supabase Edge Functions due to import issues
-        // Consider using an external scraping service like ScrapingBee, Bright Data, or similar
-        // for production deployments that require headless browser automation
-        const { chromium } = await import("https://esm.sh/playwright@1.40.0");
+      // Import Playwright
+      const { chromium } = await import("https://esm.sh/playwright@1.40.0");
       
       // Launch browser
       const browser = await chromium.launch({
@@ -211,36 +206,9 @@ class ShavanoParkScraper implements CountyScraper {
       console.log(`[ShavanoParkScraper] Found ${tickets.length} tickets`);
       return tickets;
 
-      } catch (playwrightError) {
-        console.log("[ShavanoParkScraper] Playwright failed, trying fallback method:", playwrightError.message);
-        
-        // Fallback to HTTP-based scraping with better form handling
-        return await this.fallbackScraping(params);
-      }
     } catch (error) {
       console.error("[ShavanoParkScraper] Error:", error);
       throw new Error(`Shavano Park scraping failed: ${error.message}`);
-    }
-  }
-
-  private async fallbackScraping(params: { driverLicenseNumber: string; state: string; dob?: string }): Promise<TicketData[]> {
-    try {
-      console.log("[ShavanoParkScraper] Using fallback HTTP scraping method");
-      
-      // This is a simplified fallback that acknowledges the limitation
-      // In a real production environment, you would:
-      // 1. Use an external scraping service (ScrapingBee, Bright Data, etc.)
-      // 2. Set up a separate microservice with Playwright/Selenium
-      // 3. Use a different approach like API integration if available
-      
-      console.log("[ShavanoParkScraper] Fallback method - returning empty results with helpful message");
-      
-      // Return empty results - the UI will show the fallback message
-      return [];
-      
-    } catch (error) {
-      console.error("[ShavanoParkScraper] Fallback scraping failed:", error);
-      throw new Error("We couldn't retrieve your ticket automatically. Please add it manually.");
     }
   }
 }
