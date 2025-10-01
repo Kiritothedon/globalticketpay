@@ -123,27 +123,35 @@ async function scrapeShavanoPark(
     const eventValidationMatch = pageHtml.match(
       /__EVENTVALIDATION.*?value="([^"]+)"/
     );
+    const tssmMatch = pageHtml.match(/ctl00_RadStyleSheetManager1_TSSM.*?value="([^"]+)"/);
+    const tsmMatch = pageHtml.match(/ctl00_scriptManager1_TSM.*?value="([^"]+)"/);
 
     const viewState = viewStateMatch ? viewStateMatch[1] : "";
     const viewStateGenerator = viewStateGeneratorMatch
       ? viewStateGeneratorMatch[1]
       : "";
     const eventValidation = eventValidationMatch ? eventValidationMatch[1] : "";
+    const tssm = tssmMatch ? tssmMatch[1] : "";
+    const tsm = tsmMatch ? tsmMatch[1] : "";
 
     console.log("Form fields extracted:", {
       viewState: viewState ? "present" : "missing",
       viewStateGenerator: viewStateGenerator ? "present" : "missing",
       eventValidation: eventValidation ? "present" : "missing",
+      tssm: tssm ? "present" : "missing",
+      tsm: tsm ? "present" : "missing",
     });
 
-    // Prepare form data
+    // Prepare form data with correct field names
     const formData = new URLSearchParams();
     formData.append("__VIEWSTATE", viewState);
     formData.append("__VIEWSTATEGENERATOR", viewStateGenerator);
     formData.append("__EVENTVALIDATION", eventValidation);
-    formData.append("ctl00$ContentPlaceHolder1$txtDLNumber", dlNumber);
-    formData.append("ctl00$ContentPlaceHolder1$ddlState", state);
-    formData.append("ctl00$ContentPlaceHolder1$btnSearch", "Search");
+    formData.append("ctl00$RadStyleSheetManager1$TSSM", tssm);
+    formData.append("ctl00$scriptManager1$TSM", tsm);
+    formData.append("ctl00$MainContentPHolder$txtBSDLNumber", dlNumber);
+    formData.append("ctl00$MainContentPHolder$ddlDriversLicenseState", state);
+    formData.append("ctl00$MainContentPHolder$btnSearchDL", "Search");
 
     // Submit the form
     const searchResponse = await fetch(url, {
@@ -174,15 +182,9 @@ async function scrapeShavanoPark(
     const tickets: TicketData[] = [];
 
     console.log("Parsing search results...");
+    console.log("Response length:", searchHtml.length);
     console.log("Response contains '215064':", searchHtml.includes("215064"));
-    console.log(
-      "Response contains 'DE JA QUEZ ZIMMERMAN':",
-      searchHtml.includes("DE JA QUEZ ZIMMERMAN")
-    );
-    console.log(
-      "Response contains 'SPEEDING':",
-      searchHtml.includes("SPEEDING")
-    );
+    console.log("Response contains 'SPEEDING':", searchHtml.includes("SPEEDING"));
     console.log("Response contains '$243.95':", searchHtml.includes("243.95"));
 
     // Check if there's a "no results" message

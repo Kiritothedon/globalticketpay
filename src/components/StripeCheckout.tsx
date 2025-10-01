@@ -9,13 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, XCircle, CreditCard } from "lucide-react";
+import { Loader2, XCircle, CreditCard, AlertCircle } from "lucide-react";
 import { Ticket } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
-);
+// Only load Stripe if the key is available
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey && stripeKey !== "" ? loadStripe(stripeKey) : null;
 
 interface StripeCheckoutProps {
   tickets: Ticket[];
@@ -269,6 +269,20 @@ export function StripeCheckout({
     amount: Math.round(total * 100), // Convert to cents
     currency: "usd",
   };
+
+  // If Stripe is not configured, show a message
+  if (!stripePromise) {
+    return (
+      <div className="p-6 text-center">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Payment processing is not configured. Please contact support.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <Elements stripe={stripePromise} options={options}>
