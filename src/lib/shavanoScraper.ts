@@ -16,9 +16,6 @@ export interface ShavanoSearchParams {
 }
 
 export class ShavanoScraper {
-  private static readonly SHAVANO_URL =
-    "https://www.trafficpayment.com/SearchByInvoiceInfo.aspx?csdId=520&AspxAutoDetectCookieSupport=1";
-
   static async searchTickets(
     params: ShavanoSearchParams
   ): Promise<ShavanoTicketData[]> {

@@ -26,8 +26,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Search,
-  X,
 } from "lucide-react";
 import { SupabaseService } from "@/lib/supabaseService";
 import { Ticket } from "@/lib/supabase";
@@ -44,11 +42,6 @@ export default function AddTicketPage() {
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [ocrResult, setOcrResult] = useState<ParsedTicketData | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
-  const [scrapeParams] = useState({
-    dlNumber: "",
-    state: "",
-    dob: "",
-  });
 
   // Form state
   const [formData, setFormData] = useState({
