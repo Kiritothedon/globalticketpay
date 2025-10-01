@@ -173,105 +173,162 @@ async function scrapeShavanoPark(
     // Parse results - look for ticket data in the response
     const tickets: TicketData[] = [];
 
-    // Look for various patterns that might indicate ticket data
+    console.log("Parsing search results...");
+    console.log("Response contains '215064':", searchHtml.includes("215064"));
+    console.log("Response contains 'DE JA QUEZ ZIMMERMAN':", searchHtml.includes("DE JA QUEZ ZIMMERMAN"));
+    console.log("Response contains 'SPEEDING':", searchHtml.includes("SPEEDING"));
+    console.log("Response contains '$243.95':", searchHtml.includes("243.95"));
+
     // Check if there's a "no results" message
     if (
       searchHtml.includes("No tickets found") ||
       searchHtml.includes("No records found") ||
-      searchHtml.includes("No results")
+      searchHtml.includes("No results") ||
+      searchHtml.includes("No violations found")
     ) {
       console.log("No tickets found in response");
       return tickets;
     }
 
-    // Look for table rows with ticket data
-    const tableRows = searchHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
-    console.log(`Found ${tableRows.length} table rows`);
+    // Look for the specific Shavano Park ticket data structure
+    // Based on your example: "215064 - 1" citation format
+    const citationPattern = /(\d{6})\s*-\s*(\d+)/g;
+    const citationMatches = [...searchHtml.matchAll(citationPattern)];
+    
+    console.log(`Found ${citationMatches.length} citation matches`);
 
-    for (const row of tableRows) {
-      // Look for citation number patterns
-      const citationPatterns = [
-        /citation[^>]*>([^<]+)</i,
-        /ticket[^>]*>([^<]+)</i,
-        /case[^>]*>([^<]+)</i,
-        /violation[^>]*>([^<]+)</i,
-      ];
+    for (const match of citationMatches) {
+      const citationNo = `${match[1]}-${match[2]}`;
+      console.log(`Processing citation: ${citationNo}`);
 
-      let citationNo = "";
-      for (const pattern of citationPatterns) {
-        const match = row.match(pattern);
-        if (match && match[1].trim()) {
-          citationNo = match[1].trim();
-          break;
+      // Look for the ticket data around this citation
+      const citationIndex = match.index || 0;
+      const contextStart = Math.max(0, citationIndex - 2000);
+      const contextEnd = Math.min(searchHtml.length, citationIndex + 2000);
+      const context = searchHtml.substring(contextStart, contextEnd);
+
+      // Extract violation description - look for patterns like "SPEEDING10% OVER 57 MPH in a 45 MPH zone"
+      const violationMatch = context.match(/SPEEDING[^<]*|VIOLATION[^<]*|PARKING[^<]*|RED LIGHT[^<]*/i);
+      const violation = violationMatch ? violationMatch[0].trim() : "Unknown Violation";
+
+      // Extract amounts - look for patterns like "$229.00", "$14.95", "$243.95"
+      const amountMatches = context.match(/\$(\d+\.\d{2})/g);
+      let fineAmount = 0;
+      let processingFee = 0;
+      let totalAmount = 0;
+
+      if (amountMatches) {
+        const amounts = amountMatches.map(m => parseFloat(m.replace('$', '')));
+        console.log(`Found amounts: ${amounts.join(', ')}`);
+        
+        // The total amount is usually the highest value
+        totalAmount = Math.max(...amounts);
+        
+        // Fine amount is usually the second highest or a specific pattern
+        if (amounts.length >= 2) {
+          const sortedAmounts = amounts.sort((a, b) => b - a);
+          fineAmount = sortedAmounts[1] || sortedAmounts[0];
+          processingFee = totalAmount - fineAmount;
+        } else {
+          fineAmount = totalAmount;
         }
       }
 
-      if (citationNo) {
-        // Extract other ticket information
-        const violationMatch =
-          row.match(/violation[^>]*>([^<]+)</i) ||
-          row.match(/description[^>]*>([^<]+)</i) ||
-          row.match(/offense[^>]*>([^<]+)</i);
-
-        const amountMatch =
-          row.match(/\$?(\d+\.?\d*)/) || row.match(/amount[^>]*>([^<]+)</i);
-
-        const dateMatch =
-          row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/) ||
-          row.match(/due[^>]*>([^<]+)</i);
-
-        const violation = violationMatch
-          ? violationMatch[1].trim()
-          : "Unknown Violation";
-        const amount = amountMatch
-          ? parseFloat(amountMatch[1].replace(/[$,]/g, ""))
-          : 0;
-        const dueDate = dateMatch
-          ? formatDate(dateMatch[1])
-          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0];
-
-        tickets.push({
-          citationNo: citationNo,
-          violation: violation,
-          fineAmount: amount,
-          dueDate: dueDate,
-          courtName: "Shavano Park Municipal Court",
-          source: "shavano",
-        });
-
-        console.log(`Found ticket: ${citationNo} - ${violation} - $${amount}`);
+      // Extract date - look for "October 03, 2024" format
+      const dateMatch = context.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/i);
+      let dueDate = "";
+      if (dateMatch) {
+        const dateStr = dateMatch[0];
+        // Convert to YYYY-MM-DD format
+        const date = new Date(dateStr);
+        dueDate = date.toISOString().split('T')[0];
+      } else {
+        // Fallback to 30 days from now
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        dueDate = futureDate.toISOString().split('T')[0];
       }
+
+      // Extract name - look for "DE JA QUEZ ZIMMERMAN" pattern
+      const nameMatch = context.match(/([A-Z\s]{10,50})/);
+      const name = nameMatch ? nameMatch[1].trim() : "";
+
+      console.log(`Extracted ticket data:`, {
+        citationNo,
+        violation,
+        fineAmount,
+        processingFee,
+        totalAmount,
+        dueDate,
+        name
+      });
+
+      tickets.push({
+        citationNo: citationNo,
+        violation: violation,
+        fineAmount: totalAmount, // Use total amount as the main amount
+        dueDate: dueDate,
+        courtName: "Shavano Park Municipal Court",
+        source: "shavano",
+      });
     }
 
-    // If no tickets found in table format, try alternative parsing
+    // If no citations found with the specific pattern, try alternative parsing
     if (tickets.length === 0) {
-      console.log(
-        "No tickets found in table format, trying alternative parsing"
-      );
+      console.log("No citations found with specific pattern, trying alternative parsing");
+      
+      // Look for any table structure
+      const tableRows = searchHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+      console.log(`Found ${tableRows.length} table rows`);
 
-      // Look for any text that might indicate tickets
-      const hasTicketIndicators =
-        searchHtml.includes("ticket") ||
-        searchHtml.includes("citation") ||
-        searchHtml.includes("violation") ||
-        searchHtml.includes("fine") ||
-        searchHtml.includes("amount");
+      for (const row of tableRows) {
+        // Look for citation number patterns
+        const citationPatterns = [
+          /(\d{6})\s*-\s*(\d+)/,
+          /citation[^>]*>([^<]+)</i,
+          /ticket[^>]*>([^<]+)</i,
+        ];
 
-      if (hasTicketIndicators) {
-        console.log("Found ticket indicators but no structured data");
-        // For now, return a mock ticket to indicate the search worked
-        tickets.push({
-          citationNo: `SP-${Math.floor(Math.random() * 100000)}`,
-          violation: "Speeding",
-          fineAmount: 150,
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-          courtName: "Shavano Park Municipal Court",
-          source: "shavano",
-        });
+        let citationNo = "";
+        for (const pattern of citationPatterns) {
+          const match = row.match(pattern);
+          if (match && match[1] && match[2]) {
+            citationNo = `${match[1]}-${match[2]}`;
+            break;
+          } else if (match && match[1]) {
+            citationNo = match[1].trim();
+            break;
+          }
+        }
+
+        if (citationNo) {
+          // Extract other ticket information
+          const violationMatch =
+            row.match(/SPEEDING[^<]*|VIOLATION[^<]*|PARKING[^<]*/i) ||
+            row.match(/violation[^>]*>([^<]+)</i) ||
+            row.match(/description[^>]*>([^<]+)</i);
+
+          const amountMatches = row.match(/\$(\d+\.\d{2})/g);
+          let totalAmount = 0;
+          if (amountMatches) {
+            const amounts = amountMatches.map(m => parseFloat(m.replace('$', '')));
+            totalAmount = Math.max(...amounts);
+          }
+
+          const dateMatch = row.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+          const dueDate = dateMatch ? formatDate(dateMatch[1]) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+          tickets.push({
+            citationNo: citationNo,
+            violation: violationMatch ? violationMatch[0].trim() : "Unknown Violation",
+            fineAmount: totalAmount,
+            dueDate: dueDate,
+            courtName: "Shavano Park Municipal Court",
+            source: "shavano",
+          });
+
+          console.log(`Found ticket: ${citationNo} - ${violationMatch ? violationMatch[0].trim() : "Unknown"} - $${totalAmount}`);
+        }
       }
     }
 
@@ -279,19 +336,8 @@ async function scrapeShavanoPark(
     return tickets;
   } catch (error) {
     console.error("Shavano Park scraping error:", error);
-    // Return a mock ticket to indicate the service is working
-    return [
-      {
-        citationNo: `SP-${Math.floor(Math.random() * 100000)}`,
-        violation: "Speeding",
-        fineAmount: 150,
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-        courtName: "Shavano Park Municipal Court",
-        source: "shavano",
-      },
-    ];
+    // Return empty array instead of mock data
+    return [];
   }
 }
 
