@@ -1,9 +1,10 @@
 import { loadStripe } from "@stripe/stripe-js";
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
-);
+// Only load Stripe if the key is available
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise =
+  stripeKey && stripeKey !== "" ? loadStripe(stripeKey) : null;
 
 export { stripePromise };
 

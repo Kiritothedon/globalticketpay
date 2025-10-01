@@ -32,8 +32,6 @@ import {
 import { SupabaseService } from "@/lib/supabaseService";
 import { Ticket } from "@/lib/supabase";
 import { EnhancedOCRService, ParsedTicketData } from "@/lib/enhancedOcrService";
-import { UnifiedTicketData } from "@/lib/ticketIntakeService";
-import { EnhancedTicketIntake } from "@/components/EnhancedTicketIntake";
 
 export default function AddTicketPage() {
   const { user } = useAuth();
@@ -46,7 +44,6 @@ export default function AddTicketPage() {
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [ocrResult, setOcrResult] = useState<ParsedTicketData | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
-  const [showEnhancedIntake, setShowEnhancedIntake] = useState(false);
   const [scrapeParams] = useState({
     dlNumber: "",
     state: "",
@@ -163,66 +160,6 @@ export default function AddTicketPage() {
       );
     } finally {
       setIsProcessingOCR(false);
-    }
-  };
-
-  const handleEnhancedTicketsFound = async (tickets: UnifiedTicketData[]) => {
-    if (!user) return;
-
-    try {
-      // Convert unified tickets to our ticket format and save them
-      for (const ticket of tickets) {
-        const ticketData: Omit<Ticket, "id" | "created_at" | "updated_at"> = {
-          user_id: user.id,
-          ticket_number: ticket.citation_no,
-          violation_date: new Date().toISOString().split("T")[0], // Default to today
-          due_date:
-            ticket.due_date ||
-            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-          amount: ticket.fine_amount,
-          state: scrapeParams?.state || "TX", // Default to TX if not specified
-          county: ticket.court_name?.includes("Shavano")
-            ? "Shavano Park"
-            : ticket.court_name?.includes("Cibolo")
-            ? "Cibolo"
-            : "Unknown",
-          court: ticket.court_name || "Unknown Court",
-          violation: ticket.violation || "Unknown Violation",
-          violation_code: "",
-          violation_description: ticket.violation || "",
-          driver_license_number: ticket.dl_no,
-          driver_license_state: scrapeParams?.state || "TX",
-          date_of_birth: ticket.dob,
-          license_expiration_date: "",
-          vehicle_plate: "",
-          vehicle_make: "",
-          vehicle_model: "",
-          vehicle_year: 0,
-          vehicle_color: "",
-          officer_name: "",
-          officer_badge_number: "",
-          status: "pending",
-          notes: `Found via ${ticket.source} (${Math.round(
-            ticket.confidence * 100
-          )}% confidence)`,
-          court_date: ticket.court_date,
-          court_location: ticket.court_address,
-          payment_date: undefined,
-          payment_method: undefined,
-          payment_reference: undefined,
-          ticket_image_url: undefined,
-        };
-
-        await SupabaseService.createTicket(ticketData);
-      }
-
-      setSuccess(true);
-      setShowEnhancedIntake(false);
-    } catch (error) {
-      console.error("Error adding enhanced tickets:", error);
-      setError("Failed to add tickets. Please try again.");
     }
   };
 
@@ -345,14 +282,6 @@ export default function AddTicketPage() {
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => setShowEnhancedIntake(true)}
-            variant="outline"
-            className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900"
-          >
-            <Search className="w-4 h-4 mr-2" />
-            Enhanced Search
-          </Button>
         </div>
       </header>
 
@@ -892,32 +821,6 @@ export default function AddTicketPage() {
           </form>
         </div>
       </main>
-
-      {/* Enhanced Ticket Intake Modal */}
-      {showEnhancedIntake && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background rounded-lg">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">
-                  Enhanced Ticket Search
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowEnhancedIntake(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <EnhancedTicketIntake
-                onTicketsFound={handleEnhancedTicketsFound}
-                onClose={() => setShowEnhancedIntake(false)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

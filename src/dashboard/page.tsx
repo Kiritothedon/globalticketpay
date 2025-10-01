@@ -275,7 +275,7 @@ export default function DashboardPage() {
                 className="w-full sm:w-auto"
               >
                 <Search className="w-4 h-4 mr-2" />
-                {showLookup ? "Hide Lookup" : "Lookup Tickets"}
+                {showLookup ? "Hide Search" : "Search Tickets"}
               </Button>
               <Button
                 variant="outline"

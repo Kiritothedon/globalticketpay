@@ -153,6 +153,7 @@ export default function AuthPage() {
     setError("");
     setIsLoading(true);
 
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
